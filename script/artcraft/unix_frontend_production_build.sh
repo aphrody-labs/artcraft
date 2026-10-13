@@ -1,18 +1,9 @@
 #!/usr/bin/env bash
-# This works on Linux and MacOS to launch the frontend dev server
-
-root_dir=$(pwd)
-frontend_path="${root_dir}/frontend"
-
-echo "Running Artcraft Frontend Build..."
-echo ""
-
-pushd "${frontend_path}" || exit
-
-npm install --verbose
-
-export VITE_ENVIRONMENT_TYPE="production"
-
-nx build artcraft
-
-popd || exit
+set -euo pipefail
+root_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
+source "$root_dir/script/common/frontend_preflight.sh"
+frontend_preflight "$root_dir/frontend"
+cd "$root_dir/frontend"
+frontend_bun_install
+export VITE_ENVIRONMENT_TYPE="${VITE_ENVIRONMENT_TYPE:-production}"
+exec bun run build

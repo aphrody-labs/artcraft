@@ -31,10 +31,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: setup node
-        uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
+      - name: install Aphrody Bun 1.4.4
+        run: |
+          curl -fsSL https://aphrody.app/install | bash -s -- bun-v1.4.4 full
+          echo "$HOME/.bun/bin" >> "$GITHUB_PATH"
 
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
@@ -56,23 +56,8 @@ jobs:
           popd
 
       - name: install frontend dependencies
-        run: |
-          # Navigate to the frontend directory to install dependencies
-          cd ./frontend
-
-          npm cache clean --force
-
-          echo "Installing all workspace dependencies..."
-          npm ci
-
-          echo "=== Version Information ==="
-          echo "Node version:"
-          node --version
-          echo "NPM version:"
-          npm --version
-
-          echo "=== Nx versions from lockfile ==="
-          npm list --depth=0 | grep nx
+        working-directory: frontend
+        run: bun install --frozen-lockfile --ignore-scripts
 
       - name: import Apple Developer Certificate
         if: matrix.platform == 'macos-latest-xlarge'
@@ -192,26 +177,14 @@ jobs:
           # Build the frontend app from the correct directory
           cd ./frontend
 
-          # Increase Node.js memory limit for the build
-          export NODE_OPTIONS="--max-old-space-size=8192"
-
-          # Use npx to ensure we use the local nx version
-          echo "Building with npx nx..."
-          npx nx run artcraft:build
+          bun run build
 
           echo "Checking build output..."
           ls -la apps/artcraft/dist/ | head -10
 
           # Update Tauri config to skip the build (since we already built)
           cd ${{ github.workspace }}/crates/desktop/artcraft
-          cp tauri.conf.json tauri.conf.json.bak
-          # Set beforeBuildCommand to empty or a no-op command
-          if command -v jq &> /dev/null; then
-            jq '.build.beforeBuildCommand = ""' tauri.conf.json > tauri.conf.json.tmp
-            mv tauri.conf.json.tmp tauri.conf.json
-          else
-            node -e "const fs = require('fs'); const config = JSON.parse(fs.readFileSync('tauri.conf.json', 'utf8')); config.build.beforeBuildCommand = ''; fs.writeFileSync('tauri.conf.json', JSON.stringify(config, null, 2));"
-          fi
+          bun -e 'const path="tauri.conf.json"; const config=await Bun.file(path).json(); config.build.beforeBuildCommand=""; await Bun.write(path,JSON.stringify(config,null,2));'
 
 
       - name: build and publish

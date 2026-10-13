@@ -3,9 +3,7 @@
   "ignorePatterns": [
     "**/*"
   ],
-  "plugins": [
-    "@nx"
-  ],
+  "plugins": [],
   "overrides": [
     {
       "files": [
@@ -14,23 +12,7 @@
         "*.js",
         "*.jsx"
       ],
-      "rules": {
-        "@nx/enforce-module-boundaries": [
-          "error",
-          {
-            "enforceBuildableLibDependency": true,
-            "allow": [],
-            "depConstraints": [
-              {
-                "sourceTag": "*",
-                "onlyDependOnLibsWithTags": [
-                  "*"
-                ]
-              }
-            ]
-          }
-        ]
-      }
+      "rules": {}
     },
     {
       "files": [
@@ -38,7 +20,7 @@
         "*.tsx"
       ],
       "extends": [
-        "plugin:@nx/typescript"
+        "plugin:@typescript-eslint/recommended"
       ],
       "rules": {}
     },
@@ -48,7 +30,7 @@
         "*.jsx"
       ],
       "extends": [
-        "plugin:@nx/javascript"
+        "eslint:recommended"
       ],
       "rules": {}
     }

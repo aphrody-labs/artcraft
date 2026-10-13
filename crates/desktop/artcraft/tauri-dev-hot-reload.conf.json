@@ -3,16 +3,17 @@
     "frontendDist": "../../../frontend/apps/artcraft/dist",
     "beforeDevCommand": "echo 'no dev'",
     "devUrl": "http://localhost:5173",
-    "beforeBuildCommand": "npx nx run artcraft:build"
+    "beforeBuildCommand": "bun run build"
   },
   "app": {
     "withGlobalTauri": true,
-    "windows": [
-    ],
+    "windows": [],
     "security": {
       "assetProtocol": {
         "enable": true,
-        "scope": ["**"]
+        "scope": [
+          "**"
+        ]
       },
       "csp": {
         "default-src": [

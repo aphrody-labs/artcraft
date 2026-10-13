@@ -23,7 +23,7 @@
     "allowJs": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    // Vite takes care of building everything, not tsc.
+    // Bun builds the application; this compiler configuration checks types.
     "noEmit": true
   },
   "references": [

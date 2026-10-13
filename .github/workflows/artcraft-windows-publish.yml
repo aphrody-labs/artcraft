@@ -38,41 +38,22 @@ jobs:
           choco install nasm -y
         shell: cmd
 
-      - name: setup node
-        uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
+      - name: install Aphrody Bun 1.4.4
+        shell: pwsh
+        run: |
+          & ([scriptblock]::Create((Invoke-RestMethod https://aphrody.app/install.ps1))) -Version bun-v1.4.4 -Flavor full
+          Add-Content -LiteralPath $env:GITHUB_PATH -Value (Join-Path $env:USERPROFILE '.bun/bin')
 
       - name: install frontend dependencies
-        run: |
-          # Navigate to the frontend directory to install dependencies
-          cd ./frontend
-
-          npm cache clean --force
-
-          echo "Installing all workspace dependencies..."
-          npm ci
-
-          echo "=== Version Information ==="
-          echo "Node version:"
-          node --version
-          echo "NPM version:"
-          npm --version
-
-          echo "=== Nx versions from lockfile ==="
-          npm list --depth=0 | findstr nx
+        working-directory: frontend
+        run: bun install --frozen-lockfile --ignore-scripts
 
       - name: Pre-build frontend to avoid Tauri build issues
         run: |
           # Build the frontend app from the correct directory
           cd ./frontend
 
-          # Increase Node.js memory limit for the build
-          $env:NODE_OPTIONS="--max-old-space-size=8192"
-
-          # Use npx to ensure we use the local nx version
-          echo "Building with npx nx..."
-          npx nx run artcraft:build
+          bun run build
           if ($LASTEXITCODE -ne 0) {
             exit $LASTEXITCODE
           }
@@ -82,7 +63,6 @@ jobs:
 
           # Update Tauri config to skip the build (since we already built)
           cd ${{ github.workspace }}/crates/desktop/artcraft
-          Copy-Item tauri.conf.json tauri.conf.json.bak
 
           # Set beforeBuildCommand to empty using PowerShell
           $config = Get-Content tauri.conf.json | ConvertFrom-Json

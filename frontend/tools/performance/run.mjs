@@ -1,17 +1,17 @@
-import { build, preview } from "vite";
+import { buildFrontend, serveFrontend } from "../../scripts/artcraft.ts";
 import { chromium } from "@playwright/test";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import os from "node:os";
-import { execFileSync } from "node:child_process";
+
 import { parseArgs } from "node:util";
-import { benchmarkPlugin } from "./benchmark-plugin.mjs";
+import { benchmarkPlugin, writeBundleReport } from "./benchmark-plugin.mjs";
 import { installBrowserFixture, seedDrawingScene, measureTabChange } from "./browser-fixture.mjs";
 
 const frontend = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const { values } = parseArgs({ options: {
-  output: { type: "string", default: process.env.ARTCRAFT_PERF_DIR || "/tmp/artcraft-performance" },
+  output: { type: "string", default: process.env.ARTCRAFT_PERF_DIR || resolve(os.tmpdir(), "artcraft-performance") },
   runs: { type: "string", default: process.env.ARTCRAFT_PERF_RUNS || "7" },
   "skip-build": { type: "boolean", default: !!process.env.ARTCRAFT_PERF_SKIP_BUILD },
   "build-only": { type: "boolean", default: false },
@@ -22,25 +22,25 @@ const { values } = parseArgs({ options: {
 const output = resolve(values.output);
 const runs = Number(values.runs);
 if (!Number.isInteger(runs) || runs < 1) throw new Error("--runs must be a positive integer");
-const configFile = resolve(frontend, "apps/artcraft/vite.config.ts");
-// Match `npm run build` in the app: Tailwind resolves its config/content from cwd.
-process.chdir(dirname(configFile));
+const outdir = resolve(output, "dist");
+const gitText = args => { const result = Bun.spawnSync(["git", ...args], { cwd: frontend }); if (result.exitCode !== 0) throw new Error("Git metadata lookup failed"); return new TextDecoder().decode(result.stdout).trim(); };
 await mkdir(output, { recursive: true });
 if (!values["skip-build"]) {
-  await build({ configFile, plugins: [benchmarkPlugin({ baselineRef: values["baseline-ref"], frontend })], build: { outDir: resolve(output, "dist"), manifest: true } });
+  const result = await buildFrontend({ outdir, plugins: [benchmarkPlugin({ baselineRef: values["baseline-ref"], frontend })] });
+  await writeBundleReport(result, outdir, frontend);
   await writeFile(resolve(output, "build-info.json"), JSON.stringify({
     builtAt: new Date().toISOString(),
-    revision: execFileSync("git", ["rev-parse", "HEAD"], { cwd: frontend, encoding: "utf8" }).trim(),
+    revision: gitText(["rev-parse", "HEAD"]),
     baselineOverlay: values["baseline-ref"] || null,
-    changedFiles: execFileSync("git", ["diff", "--name-only"], { cwd: frontend, encoding: "utf8" }).trim().split("\n"),
+    changedFiles: gitText(["diff", "--name-only"]).split("\n"),
   }, null, 2));
 }
 if (values["build-only"]) process.exit(0);
-const server = await preview({ configFile, build: { outDir: resolve(output, "dist") }, preview: { host: "127.0.0.1", port: 0, strictPort: false } });
+const server = serveFrontend({ outdir, port: 0 });
 let browser;
 try {
   browser = await chromium.launch({ channel: values.channel, headless: true });
-  const url = server.resolvedUrls.local[0];
+  const url = server.url.href;
   const samples = [];
   const errors = [];
   const importedPages = [];
@@ -93,11 +93,12 @@ try {
     console.log(JSON.stringify({ run: run + 1, startup, refresh, firstDraw, leaveDraw, returnDraw }));
     // Validate deferred module evaluation separately from all timed operations.
     if (values["smoke-imports"] && run === runs - 1) {
-      const manifest = JSON.parse(await readFile(resolve(output, "dist/.vite/manifest.json"), "utf8"));
-      for (const [source, chunk] of Object.entries(manifest)) {
-        if (source.startsWith("src/pages/") && chunk.isDynamicEntry) {
-          await page.evaluate(async (file) => { await import(/* @vite-ignore */ `/${file}`); }, chunk.file);
-          importedPages.push(source);
+      const manifest = await Bun.file(resolve(outdir, "bun-metafile.json")).json();
+      for (const [file, chunk] of Object.entries(manifest.outputs)) {
+        if (chunk.entryPoint?.replaceAll("\\", "/").includes("/src/pages/") && file.endsWith(".js")) {
+          const asset = file.split(String.fromCharCode(92)).join("/").replace(/^\.\//, "");
+          await page.evaluate(async file => { await import(`/${file}`); }, asset);
+          importedPages.push(chunk.entryPoint);
         }
       }
     }
@@ -113,7 +114,7 @@ try {
   }
   const result = {
     timestamp: new Date().toISOString(), build: JSON.parse(await readFile(resolve(output, "build-info.json"), "utf8")),
-    environment: { platform: os.platform(), arch: os.arch(), cpu: os.cpus()[0].model, browser: browser.version(), node: process.version, runs, viewport: "1440x1000@1", ipc: "mocked", network: "local assets only, browser cache disabled" },
+    environment: { platform: os.platform(), arch: os.arch(), cpu: os.cpus()[0].model, browser: browser.version(), bun: Bun.version, runs, viewport: "1440x1000@1", ipc: "mocked", network: "local assets only, browser cache disabled" },
     summary, samples, importedPages, errors: [...new Set(errors)],
   };
   await writeFile(resolve(output, "results.json"), `${JSON.stringify(result, null, 2)}\n`);
@@ -121,5 +122,5 @@ try {
   if (errors.length) throw new Error("Browser errors invalidate this run; see results.json");
 } finally {
   await browser?.close();
-  await new Promise((resolve, reject) => server.httpServer.close((error) => error ? reject(error) : resolve()));
+  server.stop(true);
 }

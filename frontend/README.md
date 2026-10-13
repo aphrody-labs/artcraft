@@ -1,53 +1,45 @@
-# Artcraft frontend
+# Bun frontend library
 
-This Nx workspace contains the Tauri desktop frontend in `apps/artcraft` and its
-shared libraries in `libs`. Website and Netlify builds live in `artcraft-services`.
+This workspace adapts the upstream open source frontend library to Bun 1.4.4
+from `aphrody-labs/bun`. Internal names, source history and licences remain upstream.
 
-Use Node.js 20 or newer and npm. Run the following commands from `frontend/`:
+From this `frontend/` directory:
 
-```bash
-npm ci
-npx nx dev artcraft
-npx nx build artcraft
+```sh
+bun install --frozen-lockfile --ignore-scripts
+bun run dev
+bun run build
+bun run preview
 ```
 
-The frontend development server uses port 5173. Start the Rust app separately
-from the repository root:
+Development binds `127.0.0.1:5173`; `--port N` selects another port. Source
+changes rebuild and reload the page. React state is not preserved through HMR.
+Preview serves the existing build. Neither command terminates other processes.
 
-```bash
-./script/artcraft/unix_rust_dev.sh
-```
+`Bun.build` writes `apps/artcraft/dist` for the upstream native launcher. It
+retains source aliases/workspaces, React lazy imports, Tailwind 3/PostCSS,
+public resources, inline drawing/FBX workers, Markdown content, Spark and
+OpenCut WASM glue. Separate library `dist/` builds are unnecessary.
 
-The repository-root frontend launcher installs dependencies and starts the same
-server:
+Only `VITE_ENVIRONMENT_TYPE` and `VITE_POSTHOG_API_KEY` enter browser code;
+their existing names remain compatible. Credentials, cookies and sessions
+remain in their isolated stores.
 
-```bash
-./script/artcraft/unix_frontend_dev.sh
-```
+`bun scripts/unix-dev.mjs` starts the upstream Tauri 2 launcher and Bun frontend
+on a free loopback port starting at `ARTCRAFT_DEV_PORT` (5193 by default).
+The superproject owns the separate canonical Bun Tauri v3 integration.
 
-On Windows, use `script/artcraft/windows_frontend_dev.ps1` and
-`script/artcraft/windows_rust_dev.ps1` in separate terminals. See
-[development setup](../_docs/dev_setup.md) for Rust and Tauri prerequisites.
+The performance tool uses Bun's builder/server. Existing Vitest projects keep
+Vite, React, declaration and WASM plugins for their opt-in test configurations.
+Inactive application Vite/Nx configs and the npm lockfile have been removed.
+Publishing workflows now install the fork's pinned Bun runtime and use its
+lockfile/build; native signing remains platform-specific.
 
-The Vite build writes `apps/artcraft/dist`, which Tauri bundles. Public resources
-come from `apps/artcraft/app/public`. The app also needs its retained libraries,
-root package lock, TypeScript project references, and Nx/Vite configuration.
-The aliases in `tsconfig.base.json` resolve shared libraries to their source for
-both development and production. The app's Vite configuration loads this file
-explicitly so imports inside shared libraries use the same aliases. The desktop
-build does not require library `dist/` outputs or a separate library build.
+The production frontend compiled on native Windows with Bun 1.4.4 revision
+`2ae8fc65fba1d05c423a2433b1195835109942b6`. Browser/provider execution, native
+packaging, signing and tests were not qualified by this migration. The unchanged
+upstream dev-launcher tests still expect Vite and need migration before use.
 
-Import shared libraries by the names declared in their `package.json` files:
-
-```ts
-import { Button } from "@storyteller/ui-button";
-import { Modal } from "@storyteller/ui-modal";
-```
-
-Use the workspace-local Nx version through `npx nx`. `npm ci` and the release
-workflows use the checked-in lockfile; do not reinstall different Nx versions
-inside CI.
-
-`clean_modules.sh` is an explicit cleanup command that removes build outputs,
-Nx caches, and frontend dependencies. Do not run it when preserving local build
-outputs during repository pruning.
+Preserve `LICENSE-*`, `NOTICE` and asset attribution. `NOTICE` identifies some
+upstream public resources without distribution rights; the local build does
+not qualify distribution of those resources.

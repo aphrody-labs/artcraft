@@ -3,8 +3,12 @@
   "version": "0.0.0",
   "license": "MIT OR Apache-2.0",
   "scripts": {
-    "test:desktop-session": "node tools/testing/desktop-session.mjs",
-    "perf:desktop": "node tools/performance/run.mjs"
+    "test:desktop-session": "bun tools/testing/desktop-session.mjs",
+    "perf:desktop": "bun tools/performance/run.mjs",
+    "build": "bun scripts/artcraft.ts build",
+    "dev": "bun scripts/artcraft.ts dev",
+    "preview": "bun scripts/artcraft.ts preview",
+    "build:staging": "bun scripts/artcraft.ts build"
   },
   "private": true,
   "dependencies": {
@@ -64,13 +68,6 @@
   "devDependencies": {
     "@babel/core": "^7.14.5",
     "@babel/preset-react": "^7.14.5",
-    "@nx/eslint": "21.2.3",
-    "@nx/eslint-plugin": "21.2.3",
-    "@nx/js": "21.2.3",
-    "@nx/react": "21.2.3",
-    "@nx/vite": "21.2.3",
-    "@nx/web": "21.2.3",
-    "@nx/workspace": "21.2.3",
     "@playwright/test": "1.63.0",
     "@remix-run/node": "^2.16.5",
     "@swc-node/register": "~1.9.1",
@@ -101,7 +98,6 @@
     "jiti": "2.4.2",
     "jsdom": "~22.1.0",
     "jsonc-eslint-parser": "^2.1.0",
-    "nx": "21.2.3",
     "postcss": "8.4.38",
     "postcss-import": "^16.0.1",
     "postcss-nesting": "^12.1.0",
@@ -109,12 +105,8 @@
     "tslib": "^2.3.0",
     "typescript": "5.8.3",
     "vite": "^6.0.0",
-    "vite-plugin-banner": "^0.8.0",
     "vite-plugin-dts": "~4.5.0",
-    "vite-plugin-static-copy": "^2.3.1",
-    "vite-plugin-top-level-await": "^1.6.0",
     "vite-plugin-wasm": "^3.5.0",
-    "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^3.0.0"
   },
   "workspaces": [
@@ -123,5 +115,9 @@
     "libs/analytics/*",
     "libs/components/*",
     "libs/state/*"
-  ]
+  ],
+  "packageManager": "bun@1.4.4",
+  "engines": {
+    "bun": "1.4.4"
+  }
 }

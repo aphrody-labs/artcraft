@@ -3,23 +3,15 @@
   "private": true,
   "sideEffects": false,
   "type": "module",
-  "nx": {
-    "name": "artcraft",
-    "targets": {
-      "build": {
-        "dependsOn": []
-      }
-    }
-  },
   "scripts": {
-    "build": "vite build",
-    "preview": "vite preview --port 8080",
-    "dev": "echo 'artcraft' && vite dev",
-    "production-preview": "echo 'artcraft dev with production preview' && vite build --debug --emptyOutDir --logLevel info && vite preview --port 5173",
-    "staging-build": "vite build",
+    "build": "bun ../../scripts/artcraft.ts build",
+    "preview": "bun ../../scripts/artcraft.ts preview --port 8080",
+    "dev": "bun ../../scripts/artcraft.ts dev",
+    "production-preview": "bun ../../scripts/artcraft.ts build && bun ../../scripts/artcraft.ts preview --port 5173",
+    "staging-build": "bun ../../scripts/artcraft.ts build",
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint playground/* .",
-    "typecheck": "tsc",
-    "chromatic": "npx chromatic --project-token=chpt_0945f90d5d3626c",
+    "typecheck": "bunx --bun tsc --noEmit",
+    "chromatic": "bunx --bun chromatic",
     "prepare": "husky",
     "test": "jest"
   },
@@ -47,7 +39,6 @@
     "isbot": "^4.1.0",
     "konva": "^9.3.20",
     "lodash.debounce": "^4.0.8",
-    "nx": "^21.1.1",
     "posthog-js": "^1.141.0",
     "react": "^18.2.0",
     "react-colorful": "^5.6.1",
@@ -68,7 +59,6 @@
     "webm-writer": "^1.0.0"
   },
   "devDependencies": {
-    "@originjs/vite-plugin-commonjs": "^1.0.3",
     "@types/deep-equal": "^1.0.4",
     "@types/jest": "^29.5.12",
     "@types/react": "^19.0.0",
@@ -97,16 +87,15 @@
     "tailwindcss": "^3.4.1",
     "terser": "^5.30.3",
     "ts-jest": "^29.1.4",
-    "typescript": "^5.1.6",
-    "vite": "^5.4.0",
-    "vite-tsconfig-paths": "^4.2.1"
+    "typescript": "^5.1.6"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "bun": "1.4.4"
   },
   "version": "0.0.1",
   "lint-staged": {
     "*.js": "eslint --cache --fix --ignore-pattern 'playground/**'",
     "*.{js,css,md}": "prettier --write"
-  }
+  },
+  "packageManager": "bun@1.4.4"
 }

@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 
 const [beforePath, afterPath] = process.argv.slice(2);
-if (!beforePath || !afterPath) throw new Error("Usage: node tools/performance/compare.mjs before.json after.json");
+if (!beforePath || !afterPath) throw new Error("Usage: bun tools/performance/compare.mjs before.json after.json");
 const before = JSON.parse(await readFile(beforePath, "utf8"));
 const after = JSON.parse(await readFile(afterPath, "utf8"));
 for (const field of ["platform", "arch", "cpu", "browser", "viewport", "ipc", "network", "runs"]) {
