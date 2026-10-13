@@ -1,3 +1,4 @@
+import { DEFAULT_CANVAS_SIZE } from "../../canvas/sizes";
 import { useEffect, useReducer, useState } from "react";
 import { usePreviewViewport } from "../components/preview-viewport";
 import type { OnSnapLinesChange } from "./use-preview-interaction";
@@ -25,7 +26,7 @@ export function useTransformHandles({
   const currentTime = useEditor((e) => e.playback.getCurrentTime());
   const mediaAssets = useEditor((e) => e.media.getAssets());
   const canvasSize = useEditor(
-    (e) => e.project.getActive().settings.canvasSize,
+    (e) => e.project.getActive()?.settings.canvasSize ?? DEFAULT_CANVAS_SIZE,
   );
   const deps: TransformHandleDeps = {
     viewport,
@@ -40,8 +41,7 @@ export function useTransformHandles({
       getCanvasSize: () => canvasSize,
     },
     timeline: {
-      previewElements: (updates) =>
-        editor.timeline.previewElements({ updates }),
+      previewElements: (updates) => editor.timeline.previewElements({ updates }),
       commitPreview: () => editor.timeline.commitPreview(),
       discardPreview: () => editor.timeline.discardPreview(),
     },
@@ -50,9 +50,7 @@ export function useTransformHandles({
     },
   };
   const depsRef = useCommittedRef(deps);
-  const [controller] = useState(
-    () => new TransformHandleController({ depsRef }),
-  );
+  const [controller] = useState(() => new TransformHandleController({ depsRef }));
 
   const [, rerender] = useReducer((n: number) => n + 1, 0);
   useEffect(() => controller.subscribe(rerender), [controller]);

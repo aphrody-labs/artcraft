@@ -2,10 +2,7 @@ import { Command, type CommandResult } from "../base-command";
 import { EditorCore } from "../../core";
 import type { TScene } from "../../timeline/types";
 import { updateSceneInArray } from "../../timeline/scenes";
-import {
-  getFrameTime,
-  removeBookmarkFromArray,
-} from "../../timeline/bookmarks";
+import { getFrameTime, removeBookmarkFromArray } from "../../timeline/bookmarks";
 import { type MediaTime, ZERO_MEDIA_TIME } from "../../wasm";
 
 export class RemoveBookmarkCommand extends Command {
@@ -49,9 +46,10 @@ export class RemoveBookmarkCommand extends Command {
     });
 
     editor.scenes.setScenes({ scenes: updatedScenes });
+    return undefined;
   }
 
-  undo(): void {
+  override undo(): void {
     if (this.savedScenes) {
       const editor = EditorCore.getInstance();
       editor.scenes.setScenes({ scenes: this.savedScenes });

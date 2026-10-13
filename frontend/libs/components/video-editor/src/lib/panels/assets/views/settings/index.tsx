@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from "../../../../components/ui/select";
 import { FPS_PRESETS } from "../../../../fps/presets";
+import { DEFAULT_CANVAS_SIZE } from "../../../../canvas/sizes";
 import { floatToFrameRate, frameRateToFloat } from "../../../../fps/utils";
 import { useEditor } from "../../../../editor/use-editor";
 import {
@@ -45,13 +46,7 @@ const PRESET_LABELS: Record<string, string> = {
   "4:3": "4:3",
 };
 
-function areCanvasSizesEqual({
-  left,
-  right,
-}: {
-  left: TCanvasSize;
-  right: TCanvasSize;
-}) {
+function areCanvasSizesEqual({ left, right }: { left: TCanvasSize; right: TCanvasSize }) {
   return left.width === right.width && left.height === right.height;
 }
 
@@ -101,10 +96,9 @@ export function SettingsView() {
   const editor = useEditor();
   const activeProject = useEditor((e) => e.project.getActive());
   const { canvasPresets } = useEditorStore();
-  const currentCanvasSize = activeProject.settings.canvasSize;
-  const canvasSizeMode = activeProject.settings.canvasSizeMode ?? "preset";
-  const lastCustomCanvasSize =
-    activeProject.settings.lastCustomCanvasSize ?? null;
+  const currentCanvasSize = activeProject?.settings.canvasSize ?? DEFAULT_CANVAS_SIZE;
+  const canvasSizeMode = activeProject?.settings.canvasSizeMode ?? "preset";
+  const lastCustomCanvasSize = activeProject?.settings.lastCustomCanvasSize ?? null;
 
   const presetItems = canvasPresets.map((preset, index) => {
     const ratio = dimensionToAspectRatio(preset);
@@ -126,11 +120,7 @@ export function SettingsView() {
         )?.id ?? null)
       : null;
 
-  const updateCustomCanvasSize = ({
-    canvasSize,
-  }: {
-    canvasSize: TCanvasSize;
-  }) => {
+  const updateCustomCanvasSize = ({ canvasSize }: { canvasSize: TCanvasSize }) => {
     const shouldUpdateCanvasSize = !areCanvasSizesEqual({
       left: canvasSize,
       right: currentCanvasSize,
@@ -154,19 +144,13 @@ export function SettingsView() {
     editor.project.updateSettings({
       settings: {
         ...(shouldUpdateCanvasSize ? { canvasSize } : {}),
-        ...(shouldUpdateCanvasSizeMode
-          ? { canvasSizeMode: "custom" as const }
-          : {}),
+        ...(shouldUpdateCanvasSizeMode ? { canvasSizeMode: "custom" as const } : {}),
         lastCustomCanvasSize: canvasSize,
       },
     });
   };
 
-  const selectPresetCanvasSize = ({
-    canvasSize,
-  }: {
-    canvasSize: TCanvasSize;
-  }) => {
+  const selectPresetCanvasSize = ({ canvasSize }: { canvasSize: TCanvasSize }) => {
     const shouldUpdateCanvasSize = !areCanvasSizesEqual({
       left: canvasSize,
       right: currentCanvasSize,
@@ -178,9 +162,7 @@ export function SettingsView() {
     editor.project.updateSettings({
       settings: {
         ...(shouldUpdateCanvasSize ? { canvasSize } : {}),
-        ...(shouldUpdateCanvasSizeMode
-          ? { canvasSizeMode: "preset" as const }
-          : {}),
+        ...(shouldUpdateCanvasSizeMode ? { canvasSizeMode: "preset" as const } : {}),
       },
     });
   };
@@ -209,6 +191,8 @@ export function SettingsView() {
 
   const isCustomSelected = canvasSizeMode === "custom";
 
+  if (!activeProject) return null;
+
   return (
     <PanelView
       contentClassName="px-0"
@@ -234,18 +218,14 @@ export function SettingsView() {
           <Section showTopBorder={false}>
             <SectionHeader>
               <SectionTitle className="flex-1">Name</SectionTitle>
-              <span className="text-sm truncate">
-                {activeProject.metadata.name}
-              </span>
+              <span className="text-sm truncate">{activeProject.metadata.name}</span>
             </SectionHeader>
           </Section>
           <Section showTopBorder={false}>
             <SectionHeader className="justify-between">
               <SectionTitle className="flex-1">Frame rate</SectionTitle>
               <Select
-                value={String(
-                  Math.round(frameRateToFloat(activeProject.settings.fps)),
-                )}
+                value={String(Math.round(frameRateToFloat(activeProject.settings.fps)))}
                 onValueChange={(value) => {
                   const fps = floatToFrameRate(parseFloat(value));
                   editor.project.updateSettings({ settings: { fps } });
@@ -264,11 +244,7 @@ export function SettingsView() {
               </Select>
             </SectionHeader>
           </Section>
-          <Section
-            showTopBorder={false}
-            collapsible
-            sectionKey="settings:aspect-ratio"
-          >
+          <Section showTopBorder={false} collapsible sectionKey="settings:aspect-ratio">
             <SectionHeader>
               <SectionTitle className="flex-1">Aspect ratio</SectionTitle>
             </SectionHeader>
@@ -348,18 +324,12 @@ function AspectRatioItem({
     >
       <div className="w-full flex justify-between items-center h-8">
         <div className="flex-1 flex items-center gap-2">
-          <div className="flex items-center justify-center size-5">
-            {previewIcon}
-          </div>
+          <div className="flex items-center justify-center size-5">{previewIcon}</div>
           <span className="text-sm truncate">{label}</span>
         </div>
-        <div>
-          {isSelected && <HugeiconsIcon icon={Tick02Icon} className="size-4" />}
-        </div>
+        <div>{isSelected && <HugeiconsIcon icon={Tick02Icon} className="size-4" />}</div>
       </div>
-      {uiOptions && isSelected && (
-        <div className="w-full pb-2">{uiOptions}</div>
-      )}
+      {uiOptions && isSelected && <div className="w-full pb-2">{uiOptions}</div>}
     </Button>
   );
 }

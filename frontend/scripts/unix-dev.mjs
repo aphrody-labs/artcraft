@@ -13,8 +13,15 @@ Bun.env.VITE_ENVIRONMENT_TYPE ??= "production";
 await buildFrontend({ development: true });
 let server;
 for (let offset = 0; offset < 20; offset++) {
-  try { server = serveFrontend({ port: startingPort === 0 ? 0 : startingPort + offset, development: true }); break; }
-  catch (error) { if (error.code !== "EADDRINUSE" || offset === 19) throw error; }
+  try {
+    server = serveFrontend({
+      port: startingPort === 0 ? 0 : startingPort + offset,
+      development: true,
+    });
+    break;
+  } catch (error) {
+    if (error.code !== "EADDRINUSE" || offset === 19) throw error;
+  }
 }
 const closeWatchers = watchDevelopment(server);
 const devUrl = server.url.origin;
@@ -23,20 +30,46 @@ const config = await Bun.file(configPath).json();
 const csp = config.app.security.csp;
 const overrides = {
   build: { devUrl, beforeDevCommand: "" },
-  app: { security: { devCsp: { ...csp, "connect-src": [...csp["connect-src"], devUrl, devUrl.replace("http:", "ws:")] } } },
+  app: {
+    security: {
+      devCsp: {
+        ...csp,
+        "connect-src": [...csp["connect-src"], devUrl, devUrl.replace("http:", "ws:")],
+      },
+    },
+  },
 };
 console.log(`[bun] Bun frontend with page reload: ${devUrl}`);
-const rust = Bun.spawn(["cargo", "tauri", "dev", "--no-dev-server",
-  "--additional-watch-folders", join(rootDir, ".sqlx"),
-  "--additional-watch-folders", join(rootDir, "_database/sql/artcraft_migrations"),
-  "--config", configPath, "--config", JSON.stringify(overrides),
-], {
-  cwd: rootDir,
-  detached: process.platform !== "win32",
-  stdout: "inherit", stderr: "inherit", stdin: "ignore",
-  env: { ...Bun.env, TAURI_FRONTEND_PATH: frontendDir, TAURI_APP_PATH: rustDir,
-    SQLX_OFFLINE: Bun.env.SQLX_OFFLINE ?? "true", RUSTFLAGS: Bun.env.RUSTFLAGS ?? "-Awarnings" },
-});
+const rust = Bun.spawn(
+  [
+    "cargo",
+    "tauri",
+    "dev",
+    "--no-dev-server",
+    "--additional-watch-folders",
+    join(rootDir, ".sqlx"),
+    "--additional-watch-folders",
+    join(rootDir, "_database/sql/artcraft_migrations"),
+    "--config",
+    configPath,
+    "--config",
+    JSON.stringify(overrides),
+  ],
+  {
+    cwd: rootDir,
+    detached: process.platform !== "win32",
+    stdout: "inherit",
+    stderr: "inherit",
+    stdin: "ignore",
+    env: {
+      ...Bun.env,
+      TAURI_FRONTEND_PATH: frontendDir,
+      TAURI_APP_PATH: rustDir,
+      SQLX_OFFLINE: Bun.env.SQLX_OFFLINE ?? "true",
+      RUSTFLAGS: Bun.env.RUSTFLAGS ?? "-Awarnings",
+    },
+  },
+);
 let stopping = false;
 async function stop(exitCode) {
   if (stopping) return;
@@ -44,12 +77,24 @@ async function stop(exitCode) {
   closeWatchers();
   server.stop(true);
   if (process.platform === "win32") {
-    const kill = Bun.spawn(["taskkill", "/PID", String(rust.pid), "/T", "/F"], { stdout: "ignore", stderr: "ignore", timeout: 5000 });
+    const kill = Bun.spawn(["taskkill", "/PID", String(rust.pid), "/T", "/F"], {
+      stdout: "ignore",
+      stderr: "ignore",
+      timeout: 5000,
+    });
     await kill.exited;
   } else {
-    try { process.kill(-rust.pid, "SIGTERM"); } catch (error) { if (error.code !== "ESRCH") throw error; }
-    const deadline = setTimeout(() => { try { process.kill(-rust.pid, "SIGKILL"); } catch {} }, 5000);
-    await Promise.race([rust.exited, new Promise(resolve => setTimeout(resolve, 5000))]);
+    try {
+      process.kill(-rust.pid, "SIGTERM");
+    } catch (error) {
+      if (error.code !== "ESRCH") throw error;
+    }
+    const deadline = setTimeout(() => {
+      try {
+        process.kill(-rust.pid, "SIGKILL");
+      } catch {}
+    }, 5000);
+    await Promise.race([rust.exited, Bun.sleep(5000)]);
     clearTimeout(deadline);
   }
   process.exit(exitCode);
@@ -57,7 +102,13 @@ async function stop(exitCode) {
 process.on("SIGINT", () => void stop(130));
 process.on("SIGTERM", () => void stop(143));
 process.on("SIGHUP", () => void stop(129));
-process.on("uncaughtException", error => { console.error(error); void stop(1); });
-process.on("unhandledRejection", error => { console.error(error); void stop(1); });
+process.on("uncaughtException", (error) => {
+  console.error(error);
+  void stop(1);
+});
+process.on("unhandledRejection", (error) => {
+  console.error(error);
+  void stop(1);
+});
 await rust.exited;
 await stop(rust.exitCode ?? 1);

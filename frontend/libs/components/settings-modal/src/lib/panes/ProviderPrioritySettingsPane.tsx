@@ -17,11 +17,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVerticalIcon, LoaderCircleIcon } from "lucide-react";
-import {
-  SetProviderOrder,
-  Provider,
-  GetProviderOrder,
-} from "@storyteller/tauri-api";
+import { SetProviderOrder, Provider, GetProviderOrder } from "@storyteller/tauri-api";
 import { getCreatorIcon, ModelCreator } from "@storyteller/model-list";
 import { IsDesktopApp } from "@storyteller/tauri-utils";
 
@@ -37,20 +33,10 @@ interface SortableItemProps {
   isUpdating?: boolean;
 }
 
-const SortableItem = ({
-  id,
-  name,
-  icon,
-  isUpdating = false,
-}: SortableItemProps) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id });
+const SortableItem = ({ id, name, icon, isUpdating = false }: SortableItemProps) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id,
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -74,9 +60,7 @@ const SortableItem = ({
       `}
     >
       <div className="flex items-center gap-3">
-        <span className="inline-flex items-center justify-center h-4 w-4">
-          {icon}
-        </span>
+        <span className="inline-flex items-center justify-center h-4 w-4">{icon}</span>
         <span className="font-medium">{name}</span>
       </div>
       <div className="flex items-center">
@@ -86,7 +70,7 @@ const SortableItem = ({
   );
 };
 
-const ProviderItemMap = {
+const ProviderItemMap: Partial<Record<Provider, ProviderItem>> = {
   [Provider.ArtCraft]: { id: Provider.ArtCraft, name: "ArtCraft" },
   [Provider.Fal]: { id: Provider.Fal, name: "Fal" },
   [Provider.Sora]: { id: Provider.Sora, name: "Sora / ChatGPT" },
@@ -104,9 +88,7 @@ const getProviderIcon = (provider: Provider): ReactNode => {
   return (
     <img
       src={
-        IsDesktopApp()
-          ? "/resources/images/services/generic.svg"
-          : "/images/services/generic.svg"
+        IsDesktopApp() ? "/resources/images/services/generic.svg" : "/images/services/generic.svg"
       }
       alt="generic logo"
       className="h-4 w-4 icon-auto-contrast"
@@ -127,7 +109,8 @@ export const ProviderPrioritySettingsPane = () => {
 
       // Add providers from backend (in order)
       for (let provider of providers.payload.providers) {
-        items.push(ProviderItemMap[provider]);
+        const item = ProviderItemMap[provider];
+        if (item) items.push(item);
       }
 
       // Add providers not in backend (in order)
@@ -146,7 +129,7 @@ export const ProviderPrioritySettingsPane = () => {
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
 
   const updateProviderPriorityOnBackend = async (newOrder: ProviderItem[]) => {
@@ -189,17 +172,12 @@ export const ProviderPrioritySettingsPane = () => {
     <div className="space-y-4 pt-3">
       <div>
         <p className="text-xs text-base-fg/70 mb-4">
-          Drag and drop to reorder model provider priority. Higher items will be
-          tried first. You can use this to control favorite services and
-          spending.
+          Drag and drop to reorder model provider priority. Higher items will be tried first. You
+          can use this to control favorite services and spending.
         </p>
       </div>
 
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
-      >
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={items} strategy={verticalListSortingStrategy}>
           <div className="space-y-2">
             {items.map((item) => (

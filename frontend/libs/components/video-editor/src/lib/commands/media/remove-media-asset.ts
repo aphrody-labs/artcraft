@@ -12,19 +12,11 @@ export class RemoveMediaAssetCommand extends Command {
   private savedTracks: SceneTracks | null = null;
   private removedAsset: MediaAsset | null = null;
 
-  constructor({
-    projectId,
-    assetId,
-  }: {
-    projectId: string;
-    assetId: string;
-  }) {
+  constructor({ assetId }: { projectId: string; assetId: string }) {
     super();
-    this.projectId = projectId;
     this.assetId = assetId;
   }
 
-  private projectId: string;
   private assetId: string;
 
   execute(): CommandResult | undefined {
@@ -34,8 +26,7 @@ export class RemoveMediaAssetCommand extends Command {
     this.savedAssets = [...assets];
     this.savedTracks = editor.scenes.getActiveScene().tracks;
 
-    this.removedAsset =
-      assets.find((media: MediaAsset) => media.id === this.assetId) ?? null;
+    this.removedAsset = assets.find((media: MediaAsset) => media.id === this.assetId) ?? null;
 
     if (!this.removedAsset) {
       console.error("Media asset not found:", this.assetId);
@@ -80,9 +71,10 @@ export class RemoveMediaAssetCommand extends Command {
     }
 
     // Persistence handled by host via ProjectStorageAdapter
+    return undefined;
   }
 
-  undo(): void {
+  override undo(): void {
     const editor = EditorCore.getInstance();
 
     if (this.savedAssets && this.removedAsset) {
@@ -92,9 +84,7 @@ export class RemoveMediaAssetCommand extends Command {
       };
 
       editor.media.setAssets({
-        assets: this.savedAssets.map((a) =>
-          a.id === this.assetId ? restoredAsset : a,
-        ),
+        assets: this.savedAssets.map((a) => (a.id === this.assetId ? restoredAsset : a)),
       });
 
       // Persistence handled by host via ProjectStorageAdapter

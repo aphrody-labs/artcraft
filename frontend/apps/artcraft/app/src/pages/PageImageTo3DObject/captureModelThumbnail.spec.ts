@@ -1,8 +1,8 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "bun:test";
 import * as THREE from "three";
 import { captureModelThumbnail } from "./captureModelThumbnail";
 
-const { renderers, pendingLoads } = vi.hoisted(() => ({
+const { renderers, pendingLoads } = (() => ({
   renderers: [] as Array<{
     dispose: ReturnType<typeof vi.fn>;
     forceContextLoss: ReturnType<typeof vi.fn>;
@@ -11,11 +11,11 @@ const { renderers, pendingLoads } = vi.hoisted(() => ({
     onLoad: (gltf: { scene: THREE.Object3D }) => void;
     onError: (error: unknown) => void;
   }>,
-}));
+}))();
 
 // jsdom has no WebGL; only the teardown calls matter here.
-vi.mock("three", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("three")>();
+const actualThree = { ...THREE };
+vi.mock("three", () => {
   class WebGLRenderer {
     domElement = { toDataURL: () => "data:image/png;base64,AAAA" };
     dispose = vi.fn();
@@ -27,7 +27,7 @@ vi.mock("three", async (importOriginal) => {
     setPixelRatio() {}
     render() {}
   }
-  return { ...actual, WebGLRenderer };
+  return { ...actualThree, WebGLRenderer };
 });
 
 // Loads stay pending until a test settles them.

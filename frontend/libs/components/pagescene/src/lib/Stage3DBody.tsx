@@ -7,40 +7,21 @@
 // exact same 3D editor UX. Only the platform-specific PageSceneAdapter
 // implementation differs between hosts.
 
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-} from "react";
-import {
-  GalleryItem,
-  onImageDrop,
-  removeImageDropListener,
-} from "@storyteller/ui-gallery-modal";
+import React, { useContext, useEffect, useRef } from "react";
+import { GalleryItem, onImageDrop, removeImageDropListener } from "@storyteller/ui-gallery-modal";
 import {
   useStage3dPageModelList,
   ModelPage,
   defaultModelForPage,
   useClassyModelSelectorStore,
   useSelectedImageModel,
-  useSelectedProviderForModel,
   ClassyModelSelector,
 } from "@storyteller/ui-model-selector";
-import { PopoverMenu } from "@storyteller/ui-popover";
-import { Tooltip } from "@storyteller/ui-tooltip";
 import type { ImageModel } from "@storyteller/model-list";
-import type { GenerationProvider } from "@storyteller/api-enums";
 import { HelpMenuButton } from "@storyteller/ui-help-menu";
-import {
-  CostCalculatorButton,
-  useCostBreakdownModalStore,
-} from "@storyteller/ui-pricing-modal";
+import { CostCalculatorButton } from "@storyteller/ui-pricing-modal";
 import { LoadingDots } from "@storyteller/ui-loading";
 import { Cheatsheet, useCheatsheetVisibility } from "@storyteller/keybinds";
-import type { PopoverItem } from "@storyteller/ui-popover";
-import { v4 as uuidv4 } from "uuid";
 
 import { EngineContext } from "./contexts/EngineContext/EngineContext";
 import { AnonHintChip } from "./comps/AnonHintChip";
@@ -70,7 +51,6 @@ import { useFreeCam } from "./hooks/useFreeCam";
 import { useViewportPointer } from "./hooks/useViewportPointer";
 import { useViewportKeyboard } from "./hooks/useViewportKeyboard";
 import { useViewportSize } from "./hooks/useViewportSize";
-import { GridVisibleChangedEvent } from "./engine/events/EngineEvent";
 import { pickDropPosition } from "./engine/pickDropPosition";
 import { AssetType, CameraAspectRatio } from "./enums";
 import { usePageSceneStore, useIsVisitingOthersScene } from "./PageSceneStore";
@@ -112,7 +92,6 @@ export const Stage3DBody = ({
   showImageTo3DButton = true,
   showHelpMenu = true,
   modelSelectorPlacement = "bottom-left",
-  promptboxAboveStackSlot,
   topBarStartSlot,
   topBarEndSlot,
 }: Stage3DBodyProps = {}) => {
@@ -120,20 +99,6 @@ export const Stage3DBody = ({
   const camAspect = usePageSceneStore((s) => s.cameraAspectRatio);
   const outlinerShowing = usePageSceneStore((s) => s.outlinerShowing);
   const editorLoader = usePageSceneStore((s) => s.editorLoader);
-  const disableHotkeyInput = usePageSceneStore((s) => s.disableHotkeyInput);
-  const enableHotkeyInput = usePageSceneStore((s) => s.enableHotkeyInput);
-  const cameras = usePageSceneStore((s) => s.cameras);
-  const selectedCameraId = usePageSceneStore((s) => s.selectedCameraId);
-  const focalLengthDragging = usePageSceneStore((s) => s.focalLengthDragging);
-  const setFocalLengthDragging = usePageSceneStore(
-    (s) => s.setFocalLengthDragging,
-  );
-  const isPromptBoxFocused = usePageSceneStore((s) => s.isPromptBoxFocused);
-  const setIsPromptBoxFocused = usePageSceneStore(
-    (s) => s.setIsPromptBoxFocused,
-  );
-  const gridVisible = usePageSceneStore((s) => s.gridVisible);
-  const timelineExists = usePageSceneStore((s) => s.timelineExists);
   const timelineExpanded = usePageSceneStore((s) => s.timelineExpanded);
   const setTimelineExpanded = usePageSceneStore((s) => s.setTimelineExpanded);
   const timelineTracks = usePageSceneStore((s) => s.timelineTracks);
@@ -142,10 +107,6 @@ export const Stage3DBody = ({
   const isRecord = sceneMode === "record";
   const previewImageUrl = usePageSceneStore((s) => s.sceneMeta.previewImageUrl);
   const isVisitingOthersScene = useIsVisitingOthersScene();
-  const addCamera = usePageSceneStore((s) => s.addCamera);
-  const updateCamera = usePageSceneStore((s) => s.updateCamera);
-  const deleteCamera = usePageSceneStore((s) => s.deleteCamera);
-  const setSelectedCameraId = usePageSceneStore((s) => s.setSelectedCameraId);
 
   const handleOverlayClick = (event: React.MouseEvent<HTMLDivElement>) => {
     if (event.target === event.currentTarget) {
@@ -159,18 +120,12 @@ export const Stage3DBody = ({
     };
   }, []);
 
-  const selectedImageModel: ImageModel | undefined =
-    useSelectedImageModel(PAGE_ID);
-
-  const selectedProvider: GenerationProvider | undefined =
-    useSelectedProviderForModel(PAGE_ID, selectedImageModel?.id);
+  const selectedImageModel: ImageModel | undefined = useSelectedImageModel(PAGE_ID);
 
   // Inline (prompt-box) model selector. Built here rather than in
   // PromptBox3D so the promptbox lib doesn't take a new dep on
   // model-selector; the selector is just plumbed in as a ReactNode slot.
-  const setSelectedModel = useClassyModelSelectorStore(
-    (s) => s.setSelectedModel,
-  );
+  const setSelectedModel = useClassyModelSelectorStore((s) => s.setSelectedModel);
 
   // Seed the default model on mount when we're the only model picker
   // on the page. ClassyModelSelector does this itself on mount, but in
@@ -180,56 +135,12 @@ export const Stage3DBody = ({
   useEffect(() => {
     if (modelSelectorPlacement !== "prompt-box") return;
     if (selectedImageModel) return;
-    const models = stage3dModelList.map((i) => i.model).filter(
-      (m): m is NonNullable<typeof m> => m !== undefined,
-    );
+    const models = stage3dModelList
+      .map((i) => i.model)
+      .filter((m): m is NonNullable<typeof m> => m !== undefined);
     const def = defaultModelForPage(models, PAGE_ID);
     if (def) setSelectedModel(PAGE_ID, def);
-  }, [
-    modelSelectorPlacement,
-    selectedImageModel,
-    setSelectedModel,
-    stage3dModelList,
-  ]);
-
-  const inlineModelItems: PopoverItem[] = useMemo(
-    () =>
-      stage3dModelList.map((item) => ({
-        ...item,
-        selected: item.model === selectedImageModel,
-      })),
-    [selectedImageModel, stage3dModelList],
-  );
-  const handleInlineModelSelect = useCallback(
-    (item: PopoverItem) => {
-      if (item.model) setSelectedModel(PAGE_ID, item.model);
-    },
-    [setSelectedModel],
-  );
-  const selectedModelIcon = useMemo(
-    () =>
-      stage3dModelList.find((i) => i.model === selectedImageModel)
-        ?.icon,
-    [selectedImageModel, stage3dModelList],
-  );
-  const inlineModelSelector =
-    modelSelectorPlacement === "prompt-box" ? (
-      <Tooltip content="Model" position="top" className="z-50" closeOnClick>
-        <PopoverMenu
-          items={inlineModelItems}
-          onSelect={handleInlineModelSelect}
-          mode="toggle"
-          panelTitle="Select Model"
-          panelClassName="min-w-[260px]"
-          showIconsInList
-          triggerIcon={selectedModelIcon}
-        />
-      </Tooltip>
-    ) : undefined;
-
-  const imageCredits = useCostBreakdownModalStore(
-    (s) => s.estimatedCreditsByPage[PAGE_ID],
-  );
+  }, [modelSelectorPlacement, selectedImageModel, setSelectedModel, stage3dModelList]);
 
   const editor = useContext(EngineContext);
 
@@ -266,11 +177,7 @@ export const Stage3DBody = ({
   const getScale = () => {
     const h = viewport.height - 56;
     const scaleHeight = h < 610 ? h / 610 : 1;
-    if (
-      camAspect === CameraAspectRatio.VERTICAL_9_16 &&
-      outlinerShowing &&
-      h < 900
-    ) {
+    if (camAspect === CameraAspectRatio.VERTICAL_9_16 && outlinerShowing && h < 900) {
       if (viewport.width > 2000) return scaleHeight;
       return scaleHeight * 0.78;
     }
@@ -286,178 +193,73 @@ export const Stage3DBody = ({
   useViewportKeyboard(editor);
   const cheatsheetVisible = useCheatsheetVisibility();
 
-  const handleCameraSelect = (selectedItem: PopoverItem) => {
-    const selectedCamera = cameras.find(
-      (cam) => cam.label === selectedItem.label,
-    );
-    if (selectedCamera && editor) {
-      setSelectedCameraId(selectedCamera.id);
-      setFocalLengthDragging({
-        isDragging: true,
-        focalLength: selectedCamera.focalLength,
-      });
-      setTimeout(() => {
-        setFocalLengthDragging({
-          isDragging: false,
-          focalLength: selectedCamera.focalLength,
-        });
-      }, 1500);
-
-      const cam = editor.cameraController.camera;
-      if (cam) {
-        cam.position.set(
-          selectedCamera.position.x,
-          selectedCamera.position.y,
-          selectedCamera.position.z,
-        );
-        cam.lookAt(
-          selectedCamera.lookAt.x,
-          selectedCamera.lookAt.y,
-          selectedCamera.lookAt.z,
-        );
-        cam.fov = editor.cameraController.focalLengthToFov(
-          selectedCamera.focalLength,
-        );
-        cam.updateProjectionMatrix();
-        if (editor.cameraController.freeCamState) {
-          editor.cameraController.freeCamState.velocity.set(0, 0, 0);
-        }
-        editor.renderScene();
-      }
-
-      updateCamera(selectedCamera.id, {
-        focalLength: selectedCamera.focalLength,
-        position: selectedCamera.position,
-        rotation: selectedCamera.rotation,
-        lookAt: selectedCamera.lookAt,
-      });
-    }
-  };
-
-  const handleAddCamera = () => {
-    if (cameras.length >= 6) {
-      console.warn("Maximum number of cameras (6) reached");
-      return;
-    }
-    const newIndex = cameras.length + 1;
-    const newId = `cam${newIndex}`;
-    const radius = Math.random() * 5 + 7;
-    const theta = Math.random() * Math.PI * 2;
-    const phi = Math.PI / 3 + (Math.random() * Math.PI) / 6;
-    const randomX = radius * Math.sin(phi) * Math.cos(theta);
-    const randomY = Math.abs(radius * Math.cos(phi)) + 2;
-    const randomZ = radius * Math.sin(phi) * Math.sin(theta);
-
-    addCamera({
-      id: newId,
-      label: `Camera ${newIndex}`,
-      focalLength: 24,
-      position: { x: randomX, y: randomY, z: randomZ },
-      rotation: { x: 0, y: 0, z: 0 },
-      lookAt: { x: 0, y: 0, z: 0 },
-    });
-    setSelectedCameraId(newId);
-
-    const cam = editor?.cameraController.camera;
-    if (editor && cam) {
-      cam.position.set(randomX, randomY, randomZ);
-      cam.lookAt(0, 0, 0);
-      cam.fov = editor.cameraController.focalLengthToFov(24);
-      cam.updateProjectionMatrix();
-      if (editor.cameraController.freeCamState) {
-        editor.cameraController.freeCamState.velocity.set(0, 0, 0);
-      }
-      editor.renderScene();
-    }
-  };
-
-  const handleCameraNameChange = (id: string, newName: string) => {
-    updateCamera(id, { label: newName });
-  };
-
-  const handleCameraFocalLengthChange = (id: string, value: number) => {
-    const camera = cameras.find((cam) => cam.id === id);
-    if (camera) {
-      updateCamera(id, { focalLength: value });
-    }
-  };
-
   // Gallery → 3D scene drop handler. Stage3D mounts only when 3D is
   // active so this is implicitly 3D-only.
   useEffect(() => {
-    const handler = onImageDrop(
-      (item: GalleryItem, position: { x: number; y: number }) => {
-        (async () => {
-          if (!editor) {
-            console.warn("Cannot drop asset: editor engine not ready");
-            return;
-          }
-          const worldPosition = pickDropPosition(
-            {
-              getCamera: () => editor.cameraController.camera,
-              getCanvas: () => editor.renderer?.domElement,
-              getRaycastTargets: () => editor.activeScene.scene.children,
-              removeTransformControls: () =>
-                editor.utils.removeTransformControls(true),
-            },
-            position.x,
-            position.y,
-          );
-          try {
-            if (
-              item.mediaClass === "dimensional" ||
-              item.mediaClass === "mesh" ||
-              item.mediaClass === "splat"
-            ) {
-              const isCharacter = item.assetType === "character";
-              const isSplat = item.mediaClass === "splat";
-              const mediaItem: MediaItem = {
-                version: 1,
-                type: isCharacter
-                  ? AssetType.CHARACTER
-                  : isSplat
-                    ? AssetType.SPLAT
-                    : AssetType.OBJECT,
-                media_id: item.id || uuidv4(),
-                name:
-                  item.label ||
-                  (isCharacter
-                    ? "Character"
-                    : isSplat
-                      ? "3D World"
-                      : "3D Object"),
-              };
-              if (isCharacter) {
-                await addCharacter(editor, mediaItem, worldPosition);
-              } else {
-                // NB: Splats intentionally route through addObject too — the
-                // engine's sceneManager resolves the media token to a splat
-                // (same as the engine's own DnD in DndAsset.ts).
-                await addObject(editor, mediaItem, worldPosition);
-              }
+    const handler = onImageDrop((item: GalleryItem, position: { x: number; y: number }) => {
+      (async () => {
+        if (!editor) {
+          console.warn("Cannot drop asset: editor engine not ready");
+          return;
+        }
+        const worldPosition = pickDropPosition(
+          {
+            getCamera: () => editor.cameraController.camera,
+            getCanvas: () => editor.renderer?.domElement,
+            getRaycastTargets: () => editor.activeScene.scene.children,
+            removeTransformControls: () => editor.utils.removeTransformControls(true),
+          },
+          position.x,
+          position.y,
+        );
+        try {
+          if (
+            item.mediaClass === "dimensional" ||
+            item.mediaClass === "mesh" ||
+            item.mediaClass === "splat"
+          ) {
+            const isCharacter = item.assetType === "character";
+            const isSplat = item.mediaClass === "splat";
+            const mediaItem: MediaItem = {
+              version: 1,
+              type: isCharacter
+                ? AssetType.CHARACTER
+                : isSplat
+                  ? AssetType.SPLAT
+                  : AssetType.OBJECT,
+              media_id: item.id || crypto.randomUUID(),
+              name: item.label || (isCharacter ? "Character" : isSplat ? "3D World" : "3D Object"),
+            };
+            if (isCharacter) {
+              await addCharacter(editor, mediaItem, worldPosition);
             } else {
-              const mediaItem: MediaItem = {
-                version: 1,
-                type: AssetType.OBJECT,
-                media_id: item.id || uuidv4(),
-                name: item.label || "Image Plane",
-              };
+              // NB: Splats intentionally route through addObject too — the
+              // engine's sceneManager resolves the media token to a splat
+              // (same as the engine's own DnD in DndAsset.ts).
               await addObject(editor, mediaItem, worldPosition);
-
-              await editor.adapter.uploadPlaneFromMediaToken({
-                title: item.label || "Image Plane",
-                mediaToken: item.id,
-                progressCallback: (state) => {
-                  if (state.status) console.log("Upload status:", state.status);
-                },
-              });
             }
-          } catch (err) {
-            console.error("Failed to add object to scene:", err);
+          } else {
+            const mediaItem: MediaItem = {
+              version: 1,
+              type: AssetType.OBJECT,
+              media_id: item.id || crypto.randomUUID(),
+              name: item.label || "Image Plane",
+            };
+            await addObject(editor, mediaItem, worldPosition);
+
+            await editor.adapter.uploadPlaneFromMediaToken({
+              title: item.label || "Image Plane",
+              mediaToken: item.id,
+              progressCallback: (state) => {
+                if (state.status) console.log("Upload status:", state.status);
+              },
+            });
           }
-        })();
-      },
-    );
+        } catch (err) {
+          console.error("Failed to add object to scene:", err);
+        }
+      })();
+    });
 
     return () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -484,22 +286,15 @@ export const Stage3DBody = ({
             <RenderOverlay />
             <CompletionModal />
 
-            <div
-              className="absolute left-0 top-0 w-full"
-              onClick={handleOverlayClick}
-            >
+            <div className="absolute left-0 top-0 w-full" onClick={handleOverlayClick}>
               <div className="grid grid-cols-2 gap-x-4 gap-y-1 2xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
                 <div className="min-w-0 flex flex-col items-start gap-2">
                   {!isRecord && <ControlsTopButtons />}
-                  {!isRecord && topBarStartSlot && (
-                    <div className="pl-3">{topBarStartSlot}</div>
-                  )}
+                  {!isRecord && topBarStartSlot && <div className="pl-3">{topBarStartSlot}</div>}
                 </div>
                 <div className="col-span-2 row-start-2 flex flex-col items-center 2xl:col-span-1 2xl:col-start-2 2xl:row-start-1">
                   <SceneModePill />
-                  {!isRecord && (
-                    <Controls3D showImageTo3DButton={showImageTo3DButton} />
-                  )}
+                  {!isRecord && <Controls3D showImageTo3DButton={showImageTo3DButton} />}
                 </div>
                 <div className="col-start-2 row-start-1 flex min-w-0 flex-wrap items-start justify-end gap-2 pr-3 pt-3 2xl:col-start-3">
                   {/* Camera cluster: which camera drives the viewport +
@@ -514,18 +309,11 @@ export const Stage3DBody = ({
 
             {/* Outliner: vertically centered against the viewport. Sized in
                 vh — deliberately independent of the camera aspect ratio. */}
-            <div
-              className={`absolute left-4 top-1/2 -translate-y-1/2${
-                isRecord ? " hidden" : ""
-              }`}
-            >
+            <div className={`absolute left-4 top-1/2 -translate-y-1/2${isRecord ? " hidden" : ""}`}>
               <Outliner />
             </div>
 
-            <div
-              className="absolute bottom-0 left-0 right-0"
-              onClick={handleOverlayClick}
-            >
+            <div className="absolute bottom-0 left-0 right-0" onClick={handleOverlayClick}>
               {/* Always mounted: PreviewEngineCamera owns the cam-view canvas
                   that EngineProvider depends on — unmounting it in record mode
                   tears down + recreates the whole engine (wiping the scene).
@@ -584,9 +372,7 @@ export const Stage3DBody = ({
             )}
             {(showCostCalculator || showHelpMenu) && (
               <div className="absolute bottom-4 right-4 z-20 flex items-center gap-2">
-                {showCostCalculator && (
-                  <CostCalculatorButton modelPage={PAGE_ID} />
-                )}
+                {showCostCalculator && <CostCalculatorButton modelPage={PAGE_ID} />}
                 {showHelpMenu && <HelpMenuButton />}
               </div>
             )}

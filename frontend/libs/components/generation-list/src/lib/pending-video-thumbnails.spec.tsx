@@ -1,5 +1,6 @@
+import { stubGlobal, restoreGlobals } from "../../../../../tools/testing/globals";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "bun:test";
 import { VideoIcon } from "lucide-react";
 import {
   getVideoThumbnailState,
@@ -32,14 +33,14 @@ class FakeImage {
 
 beforeEach(() => {
   vi.useFakeTimers();
-  vi.stubGlobal("Image", FakeImage);
+  stubGlobal("Image", FakeImage);
   probes = [];
   resetVideoThumbnailsForTests();
 });
 
 afterEach(() => {
   cleanup();
-  vi.unstubAllGlobals();
+  restoreGlobals();
   vi.useRealTimers();
 });
 
@@ -152,9 +153,7 @@ describe("GalleryThumbnail", () => {
 });
 
 function renderVideoThumbnail() {
-  render(
-    <GalleryThumbnail thumbnail={THUMB} alt="Video" isVideo fallbackIcon={VideoIcon} />,
-  );
+  render(<GalleryThumbnail thumbnail={THUMB} alt="Video" isVideo fallbackIcon={VideoIcon} />);
 }
 
 // Advance time, failing every probe the checker starts along the way.

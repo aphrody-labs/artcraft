@@ -7,13 +7,7 @@ export class RenameSceneCommand extends Command {
   private savedScenes: TScene[] | null = null;
   private previousName: string | null = null;
 
-  constructor({
-    sceneId,
-    newName,
-  }: {
-    sceneId: string;
-    newName: string;
-  }) {
+  constructor({ sceneId, newName }: { sceneId: string; newName: string }) {
     super();
     this.sceneId = sceneId;
     this.newName = newName;
@@ -43,9 +37,10 @@ export class RenameSceneCommand extends Command {
     });
 
     editor.scenes.setScenes({ scenes: updatedScenes });
+    return undefined;
   }
 
-  undo(): void {
+  override undo(): void {
     if (this.savedScenes && this.previousName !== null) {
       const editor = EditorCore.getInstance();
       editor.scenes.setScenes({ scenes: this.savedScenes });

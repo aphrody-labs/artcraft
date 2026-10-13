@@ -12,29 +12,22 @@ import type { RootNode } from "../../services/renderer/nodes/root-node";
 import { buildScene } from "../../services/renderer/scene-builder";
 import { PreviewOverlayLayer } from "./overlay-layer";
 import { PreviewInteractionOverlay } from "./preview-interaction-overlay";
-import {
-  ContextMenu,
-  ContextMenuTrigger,
-} from "../../components/ui/context-menu";
-import type {
-  PreviewOverlayControl,
-  PreviewOverlayInstance,
-} from "../overlays";
+import { ContextMenu, ContextMenuTrigger } from "../../components/ui/context-menu";
+import type { PreviewOverlayControl, PreviewOverlayInstance } from "../overlays";
 import { PreviewContextMenu } from "./context-menu";
 import { PreviewToolbar } from "./toolbar";
-import {
-  PreviewViewportProvider,
-  usePreviewViewportState,
-} from "./preview-viewport";
+import { DEFAULT_CANVAS_SIZE } from "../../canvas/sizes";
+import { DEFAULT_FPS } from "../../fps/defaults";
+import { PreviewViewportProvider, usePreviewViewportState } from "./preview-viewport";
 
 function usePreviewSize() {
   const canvasSize = useEditor(
-    (e) => e.project.getActive()?.settings.canvasSize,
+    (e) => e.project.getActive()?.settings.canvasSize ?? DEFAULT_CANVAS_SIZE,
   );
 
   return {
-    width: canvasSize?.width,
-    height: canvasSize?.height,
+    width: canvasSize.width,
+    height: canvasSize.height,
   };
 }
 
@@ -65,10 +58,7 @@ export function PreviewPanel({
 }: {
   overlayControls: PreviewOverlayControl[];
   overlayInstances: PreviewOverlayInstance[];
-  onOverlayVisibilityChange: (params: {
-    overlayId: string;
-    isVisible: boolean;
-  }) => void;
+  onOverlayVisibilityChange: (params: { overlayId: string; isVisible: boolean }) => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
@@ -135,10 +125,7 @@ function PreviewCanvas({
   onToggleFullscreen: () => void;
   overlayControls: PreviewOverlayControl[];
   overlayInstances: PreviewOverlayInstance[];
-  onOverlayVisibilityChange: (params: {
-    overlayId: string;
-    isVisible: boolean;
-  }) => void;
+  onOverlayVisibilityChange: (params: { overlayId: string; isVisible: boolean }) => void;
 }) {
   const canvasMountRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -150,6 +137,7 @@ function PreviewCanvas({
   const editor = useEditor();
   const activeProject = useEditor((e) => e.project.getActive());
   const renderTree = useEditor((e) => e.renderer.getRenderTree());
+  const fps = activeProject?.settings.fps ?? DEFAULT_FPS;
   const viewport = usePreviewViewportState({
     canvasHeight: nativeHeight,
     canvasWidth: nativeWidth,
@@ -163,9 +151,9 @@ function PreviewCanvas({
     return new CanvasRenderer({
       width: nativeWidth,
       height: nativeHeight,
-      fps: activeProject.settings.fps,
+      fps,
     });
-  }, [nativeWidth, nativeHeight, activeProject.settings.fps]);
+  }, [nativeWidth, nativeHeight, fps]);
 
   // Mount the compositor's output canvas directly into the preview. wgpu
   // renders straight into this element, so there is no intermediate copy —
@@ -251,8 +239,7 @@ function PreviewCanvas({
         if (zoomRafId === null) {
           zoomRafId = requestAnimationFrame(() => {
             const cappedDelta =
-              Math.sign(pendingZoomDelta) *
-              Math.min(Math.abs(pendingZoomDelta), 30);
+              Math.sign(pendingZoomDelta) * Math.min(Math.abs(pendingZoomDelta), 30);
             const zoomFactor = Math.exp(-cappedDelta / 300);
 
             scaleZoom({ factor: zoomFactor });
@@ -326,20 +313,14 @@ function PreviewCanvas({
                     width: viewport.sceneWidth,
                     height: viewport.sceneHeight,
                     background:
-                      activeProject.settings.background.type === "blur"
-                        ? "transparent"
-                        : activeProject?.settings.background.color,
+                      activeProject?.settings.background.type === "color"
+                        ? activeProject.settings.background.color
+                        : "transparent",
                   }}
                 />
-                <PreviewOverlayLayer
-                  instances={overlayInstances}
-                  plane="under-interaction"
-                />
+                <PreviewOverlayLayer instances={overlayInstances} plane="under-interaction" />
                 <PreviewInteractionOverlay />
-                <PreviewOverlayLayer
-                  instances={overlayInstances}
-                  plane="over-interaction"
-                />
+                <PreviewOverlayLayer instances={overlayInstances} plane="over-interaction" />
               </div>
             </ContextMenuTrigger>
             <PreviewContextMenu

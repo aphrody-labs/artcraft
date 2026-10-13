@@ -12,10 +12,7 @@ function removeTrackElements<TTrack extends TimelineTrack>({
 }): TTrack {
   const nextElements = track.elements.filter(
     (element) =>
-      !elements.some(
-        (target) =>
-          target.trackId === track.id && target.elementId === element.id,
-      ),
+      !elements.some((target) => target.trackId === track.id && target.elementId === element.id),
   );
 
   return { ...track, elements: nextElements } as TTrack;
@@ -25,11 +22,7 @@ export class DeleteElementsCommand extends Command {
   private savedState: SceneTracks | null = null;
   private readonly elements: { trackId: string; elementId: string }[];
 
-  constructor({
-    elements,
-  }: {
-    elements: { trackId: string; elementId: string }[];
-  }) {
+  constructor({ elements }: { elements: { trackId: string; elementId: string }[] }) {
     super();
     this.elements = elements;
   }
@@ -63,7 +56,7 @@ export class DeleteElementsCommand extends Command {
     };
   }
 
-  undo(): void {
+  override undo(): void {
     if (this.savedState) {
       const editor = EditorCore.getInstance();
       editor.timeline.updateTracks(this.savedState);

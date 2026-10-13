@@ -1,10 +1,5 @@
-import { v4 as uuidv4 } from "uuid";
 import { MediaUploadApi } from "@storyteller/api";
-import {
-  FilterEngineCategories,
-  MediaFileAnimationType,
-  getFileExtension,
-} from "../../Types";
+import { FilterEngineCategories, MediaFileAnimationType, getFileExtension } from "../../Types";
 
 export const uploadAsset = async ({
   file,
@@ -28,7 +23,7 @@ export const uploadAsset = async ({
       return mediaUploadApi.UploadSpzFile({
         file,
         fileName: file.name,
-        uuid: uuidv4(),
+        uuid: crypto.randomUUID(),
         maybe_title: title,
       });
     case ".zip":
@@ -38,7 +33,7 @@ export const uploadAsset = async ({
         engine_category: engineCategory,
         maybe_title: title,
         maybe_animation_type: animationType,
-        uuid: uuidv4(),
+        uuid: crypto.randomUUID(),
       });
     default:
       return mediaUploadApi.UploadNewEngineAsset({
@@ -48,7 +43,7 @@ export const uploadAsset = async ({
         maybe_title: title,
         maybe_animation_type: animationType,
         maybe_duration_millis: durationMillis,
-        uuid: uuidv4(),
+        uuid: crypto.randomUUID(),
       });
   }
 };

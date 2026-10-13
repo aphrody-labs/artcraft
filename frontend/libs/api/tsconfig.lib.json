@@ -12,7 +12,7 @@
     "module": "Preserve",
     "moduleResolution": "bundler",
     "forceConsistentCasingInFileNames": true,
-    "types": ["node", "vite/client"]
+    "types": ["@aphrody/bun-types", "node", "vite/client"]
   },
   "include": ["src/**/*.ts"],
   "references": [

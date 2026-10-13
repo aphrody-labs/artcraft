@@ -18,7 +18,6 @@ import {
   downloadFileFromUrl,
 } from "@storyteller/tauri-api";
 import { toast } from "react-hot-toast";
-import { v4 as uuidv4 } from "uuid";
 import { useTabStore } from "../../pages/Stores/TabState";
 import { addObject, getActiveEditor } from "@storyteller/ui-pagescene";
 import type { MediaItem } from "@storyteller/ui-pagescene";
@@ -32,10 +31,7 @@ import {
   useSelectedModel,
   useSelectedProviderForModel,
 } from "@storyteller/ui-model-selector";
-import {
-  CostCalculatorButton,
-  useCostBreakdownModalStore,
-} from "@storyteller/ui-pricing-modal";
+import { CostCalculatorButton, useCostBreakdownModalStore } from "@storyteller/ui-pricing-modal";
 import { HelpMenuButton } from "@storyteller/ui-help-menu";
 import { CreateEmptyState } from "~/components/generation-feed/CreateEmptyState";
 
@@ -92,8 +88,7 @@ export const ImageTo3DExperience = ({
   );
   const selectedObjectModel = useSelectedModel(OBJECT_MODEL_PAGE);
   const selectedObjectModelId =
-    (selectedObjectModel?.id as EnqueueImageTo3dObjectModel | undefined) ??
-    DEFAULT_OBJECT_MODEL_ID;
+    (selectedObjectModel?.id as EnqueueImageTo3dObjectModel | undefined) ?? DEFAULT_OBJECT_MODEL_ID;
   const worldCredits = useCostBreakdownModalStore(
     (s) => s.estimatedCreditsByPage[WORLD_MODEL_PAGE],
   );
@@ -117,9 +112,7 @@ export const ImageTo3DExperience = ({
   const [selectedResultId, setSelectedResultId] = useState<string | null>(null);
   const promptContentRef = useRef<HTMLDivElement>(null);
   const [promptHeight, setPromptHeight] = useState<number>(400);
-  const [vh, setVh] = useState<number>(
-    typeof window !== "undefined" ? window.innerHeight : 800,
-  );
+  const [vh, setVh] = useState<number>(typeof window !== "undefined" ? window.innerHeight : 800);
 
   const objectResults = useImageTo3DStore((s) => s.results);
   const objectStartGeneration = useImageTo3DStore((s) => s.startGeneration);
@@ -130,26 +123,16 @@ export const ImageTo3DExperience = ({
   const worldStartGeneration = useImageTo3DWorldStore((s) => s.startGeneration);
   const worldFailGeneration = useImageTo3DWorldStore((s) => s.failGeneration);
   const worldReset = useImageTo3DWorldStore((s) => s.reset);
-  const pendingExternalImage = useImageTo3DWorldStore(
-    (s) => s.pendingExternalImage,
-  );
-  const clearPendingExternalImage = useImageTo3DWorldStore(
-    (s) => s.clearPendingExternalImage,
-  );
+  const pendingExternalImage = useImageTo3DWorldStore((s) => s.pendingExternalImage);
+  const clearPendingExternalImage = useImageTo3DWorldStore((s) => s.clearPendingExternalImage);
   const pendingObjectImage = useImageTo3DStore((s) => s.pendingExternalImage);
-  const clearPendingObjectImage = useImageTo3DStore(
-    (s) => s.clearPendingExternalImage,
-  );
+  const clearPendingObjectImage = useImageTo3DStore((s) => s.clearPendingExternalImage);
 
   const results = variant === "object" ? objectResults : worldResults;
   const resetResults = variant === "object" ? objectReset : worldReset;
-  const [uploadedMediaToken, setUploadedMediaToken] = useState<string | null>(
-    null,
-  );
+  const [uploadedMediaToken, setUploadedMediaToken] = useState<string | null>(null);
   const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
-  const [selectedGalleryImages, setSelectedGalleryImages] = useState<string[]>(
-    [],
-  );
+  const [selectedGalleryImages, setSelectedGalleryImages] = useState<string[]>([]);
 
   useEffect(() => {
     // Read from store directly to avoid Strict Mode double-execution adding the image twice
@@ -233,7 +216,7 @@ export const ImageTo3DExperience = ({
 
     try {
       const mediaUploadApi = new MediaUploadApi();
-      const uuid = uuidv4();
+      const uuid = crypto.randomUUID();
 
       const uploadResult = await mediaUploadApi.UploadImage({
         blob: file,
@@ -246,7 +229,7 @@ export const ImageTo3DExperience = ({
       }
 
       setUploadedMediaToken(uploadResult.data);
-    } catch (error) {
+    } catch {
       toast.error("Failed to upload image");
       setUploadedPreview(null);
       setUploadedName(null);
@@ -273,9 +256,7 @@ export const ImageTo3DExperience = ({
 
   const handleWorldFiles = async (files: File[]) => {
     const remaining = MAX_WORLD_IMAGES - worldImages.length;
-    const imageFiles = files
-      .filter((f) => f.type.startsWith("image/"))
-      .slice(0, remaining);
+    const imageFiles = files.filter((f) => f.type.startsWith("image/")).slice(0, remaining);
 
     await Promise.all(
       imageFiles.map(async (file) => {
@@ -303,7 +284,7 @@ export const ImageTo3DExperience = ({
           const uploadResult = await mediaUploadApi.UploadImage({
             blob: file,
             fileName: file.name,
-            uuid: uuidv4(),
+            uuid: crypto.randomUUID(),
           });
 
           if (!uploadResult.success || !uploadResult.data) {
@@ -399,8 +380,7 @@ export const ImageTo3DExperience = ({
           .filter((img) => img.mediaToken && !img.isUploading)
           .map((img) => img.mediaToken!);
         const note =
-          worldPrompt.trim() ||
-          `${worldImages.length} image${worldImages.length !== 1 ? "s" : ""}`;
+          worldPrompt.trim() || `${worldImages.length} image${worldImages.length !== 1 ? "s" : ""}`;
         const firstPreview = worldImages[0]?.preview;
 
         worldStartGeneration("image", note, firstPreview, subscriberId);
@@ -408,9 +388,7 @@ export const ImageTo3DExperience = ({
 
         window.__storeTaskEnqueueMeta?.({
           prompt: worldPrompt.trim() || undefined,
-          refImageUrls: worldImages
-            .map((img) => img.preview)
-            .filter(Boolean) as string[],
+          refImageUrls: worldImages.map((img) => img.preview).filter(Boolean) as string[],
           modelType:
             (selectedWorldModel as any)?.tauriId ||
             (SPLAT_MODELS[0] as any)?.tauriId ||
@@ -426,23 +404,13 @@ export const ImageTo3DExperience = ({
           frontend_caller: "mini_app",
           frontend_subscriber_id: subscriberId,
         });
-
       } else {
         const snapshotPrompt = prompt.trim();
         const snapshotPreview = uploadedPreview || undefined;
         const snapshotName = uploadedName;
-        const note =
-          activeMode === "text"
-            ? snapshotPrompt
-            : snapshotName || "Generated Model";
+        const note = activeMode === "text" ? snapshotPrompt : snapshotName || "Generated Model";
 
-        objectStartGeneration(
-          activeMode,
-          note,
-          snapshotPreview,
-          false,
-          subscriberId,
-        );
+        objectStartGeneration(activeMode, note, snapshotPreview, false, subscriberId);
         setSelectedResultId(subscriberId);
 
         window.__storeTaskEnqueueMeta?.({
@@ -454,12 +422,12 @@ export const ImageTo3DExperience = ({
 
         await GenerateMesh({
           prompt: snapshotPrompt || undefined,
-          reference_image_media_tokens: activeMode === "image" && uploadedMediaToken ? [uploadedMediaToken] : undefined,
+          reference_image_media_tokens:
+            activeMode === "image" && uploadedMediaToken ? [uploadedMediaToken] : undefined,
           model: selectedObjectModel?.tauriId ?? selectedObjectModelId,
           frontend_caller: "mini_app",
           frontend_subscriber_id: subscriberId,
         });
-
 
         if (activeMode === "text") {
           setPrompt("");
@@ -491,15 +459,7 @@ export const ImageTo3DExperience = ({
       return prompt.trim().length > 3;
     }
     return true;
-  }, [
-    variant,
-    activeMode,
-    uploadedMediaToken,
-    prompt,
-    isGenerating,
-    isUploading,
-    worldImages,
-  ]);
+  }, [variant, activeMode, uploadedMediaToken, prompt, isGenerating, isUploading, worldImages]);
 
   const hasResults = results.length > 0;
   const showPromptAtBottom = hasResults;
@@ -511,9 +471,7 @@ export const ImageTo3DExperience = ({
   const centerTop = vh / 2 - promptHeight / 2 + 80;
   const bottomTop = vh - bottomOffsetPx;
 
-  const targetTop = showPromptAtBottom
-    ? Math.max(0, bottomTop)
-    : Math.max(0, centerTop);
+  const targetTop = showPromptAtBottom ? Math.max(0, bottomTop) : Math.max(0, centerTop);
 
   const promptAnim = useSpring({
     top: targetTop,
@@ -581,11 +539,8 @@ export const ImageTo3DExperience = ({
         }}
       >
         <PlusIcon
-          
-          className={twMerge(
-            "text-base-fg opacity-80",
-            hasResults ? "text-2xl" : "text-4xl",
-          )} />
+          className={twMerge("text-base-fg opacity-80", hasResults ? "text-2xl" : "text-4xl")}
+        />
         {!hasResults && (
           <span className="mt-3 font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-base-fg/60">
             Add Image
@@ -629,7 +584,7 @@ export const ImageTo3DExperience = ({
                 setUploadedMediaToken(null);
               }}
             >
-              <XIcon  className="text-xs" />
+              <XIcon className="text-xs" />
             </button>
           )}
         </div>
@@ -708,8 +663,7 @@ export const ImageTo3DExperience = ({
                 onDragLeave={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  if (!e.currentTarget.contains(e.relatedTarget as Node))
-                    setDragActive(false);
+                  if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragActive(false);
                 }}
                 onDrop={(e) => {
                   e.preventDefault();
@@ -717,9 +671,7 @@ export const ImageTo3DExperience = ({
                   setDragActive(false);
                   if (e.dataTransfer?.files)
                     handleWorldFiles(
-                      Array.from(e.dataTransfer.files).filter((f) =>
-                        f.type.startsWith("image/"),
-                      ),
+                      Array.from(e.dataTransfer.files).filter((f) => f.type.startsWith("image/")),
                     );
                 }}
                 onClick={() => worldFileInputRef.current?.click()}
@@ -730,9 +682,7 @@ export const ImageTo3DExperience = ({
                   }
                 }}
               >
-                <PlusIcon
-                  
-                  className="text-3xl text-base-fg opacity-80" />
+                <PlusIcon className="text-3xl text-base-fg opacity-80" />
                 <span className="mt-2 font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-base-fg/60">
                   Add Images
                 </span>
@@ -767,10 +717,7 @@ export const ImageTo3DExperience = ({
         <img
           src={img.preview}
           alt={img.name}
-          className={twMerge(
-            "h-full w-full object-cover",
-            img.isUploading && "opacity-50 blur-sm",
-          )}
+          className={twMerge("h-full w-full object-cover", img.isUploading && "opacity-50 blur-sm")}
         />
         {img.isUploading && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/20">
@@ -786,7 +733,7 @@ export const ImageTo3DExperience = ({
               removeWorldImage(img.id);
             }}
           >
-            <XIcon  className="h-2 w-2" />
+            <XIcon className="h-2 w-2" />
           </button>
         )}
       </div>
@@ -828,11 +775,8 @@ export const ImageTo3DExperience = ({
           onClick={() => worldFileInputRef.current?.click()}
         >
           <PlusIcon
-            
-            className={twMerge(
-              "text-base-fg opacity-80",
-              hasResults ? "text-lg" : "text-2xl",
-            )} />
+            className={twMerge("text-base-fg opacity-80", hasResults ? "text-lg" : "text-2xl")}
+          />
         </Button>
       </Tooltip>
     );
@@ -905,8 +849,7 @@ export const ImageTo3DExperience = ({
     return renderImageMode();
   };
 
-  const activeResult =
-    results.find((r) => r.id === selectedResultId) || results[0];
+  const activeResult = results.find((r) => r.id === selectedResultId) || results[0];
 
   return (
     <div className="flex h-[calc(100vh-56px)] w-full bg-ui-background text-base-fg">
@@ -931,11 +874,7 @@ export const ImageTo3DExperience = ({
       <div className="relative z-10 h-full w-full p-8">
         {!hasResults && (
           <div className="pointer-events-none absolute left-0 top-[calc(50%-280px)] flex w-full justify-center">
-            <CreateEmptyState
-              title={title}
-              subtitle={subtitle}
-              className="py-8 sm:py-8"
-            />
+            <CreateEmptyState title={title} subtitle={subtitle} className="py-8 sm:py-8" />
           </div>
         )}
 
@@ -990,14 +929,11 @@ export const ImageTo3DExperience = ({
                     variant="action"
                     icon={BoxIcon}
                     onClick={() => {
-                      toast.promise(
-                        downloadFileFromUrl(activeResult.modelUrl!),
-                        {
-                          loading: "Downloading GLB...",
-                          success: "Downloaded GLB file",
-                          error: "Failed to download file",
-                        },
-                      );
+                      toast.promise(downloadFileFromUrl(activeResult.modelUrl!), {
+                        loading: "Downloading GLB...",
+                        success: "Downloaded GLB file",
+                        error: "Failed to download file",
+                      });
                     }}
                   >
                     GLB
@@ -1049,9 +985,7 @@ export const ImageTo3DExperience = ({
                             />
                           ) : (
                             <div className="flex h-full w-full items-center justify-center text-base-fg/25">
-                              <BoxIcon
-                                
-                                className="text-lg" />
+                              <BoxIcon className="text-lg" />
                             </div>
                           )}
                           {isPending && (
@@ -1066,9 +1000,7 @@ export const ImageTo3DExperience = ({
                           </div>
                           <div className="mt-1 flex items-center gap-1.5 text-xs">
                             {isPending ? (
-                              <span className="text-base-fg/55">
-                                Generating…
-                              </span>
+                              <span className="text-base-fg/55">Generating…</span>
                             ) : (
                               <span className="font-mono tabular-nums text-base-fg/45">
                                 {formatTime(result.timestamp)}
@@ -1089,24 +1021,13 @@ export const ImageTo3DExperience = ({
         <animated.div
           className={twMerge(
             "fixed left-1/2 z-20 w-full -translate-x-1/2",
-            variant === "world"
-              ? hasResults
-                ? "max-w-2xl"
-                : "max-w-lg"
-              : "max-w-md",
+            variant === "world" ? (hasResults ? "max-w-2xl" : "max-w-lg") : "max-w-md",
           )}
           style={promptAnim}
         >
           <div ref={promptContentRef}>
-            <div
-              className={twMerge(
-                "glass w-full",
-                hasResults ? "p-3" : "p-5",
-              )}
-            >
-              <div className={hasResults ? "space-y-3" : "space-y-5"}>
-                {renderActiveMode()}
-              </div>
+            <div className={twMerge("glass w-full", hasResults ? "p-3" : "p-5")}>
+              <div className={hasResults ? "space-y-3" : "space-y-5"}>{renderActiveMode()}</div>
 
               <div
                 className={twMerge(
@@ -1121,9 +1042,7 @@ export const ImageTo3DExperience = ({
                       ? IMAGE_TO_3D_WORLD_PAGE_MODEL_LIST
                       : IMAGE_TO_3D_OBJECT_PAGE_MODEL_LIST
                   }
-                  page={
-                    variant === "world" ? WORLD_MODEL_PAGE : OBJECT_MODEL_PAGE
-                  }
+                  page={variant === "world" ? WORLD_MODEL_PAGE : OBJECT_MODEL_PAGE}
                 />
                 <GenerateButton
                   variant="primary"
@@ -1154,9 +1073,7 @@ export const ImageTo3DExperience = ({
 
         <div className="absolute bottom-4 right-4 z-20 flex items-center gap-2">
           <CostCalculatorButton
-            modelPage={
-              variant === "world" ? WORLD_MODEL_PAGE : OBJECT_MODEL_PAGE
-            }
+            modelPage={variant === "world" ? WORLD_MODEL_PAGE : OBJECT_MODEL_PAGE}
           />
           <HelpMenuButton />
         </div>
@@ -1192,9 +1109,7 @@ export const ImageTo3DExperience = ({
         mode="select"
         selectedItemIds={selectedGalleryImages}
         onSelectItem={handleImageSelect}
-        maxSelections={
-          variant === "world" ? MAX_WORLD_IMAGES - worldImages.length : 1
-        }
+        maxSelections={variant === "world" ? MAX_WORLD_IMAGES - worldImages.length : 1}
         onUseSelected={handleGallerySelect}
         onDownloadClicked={downloadFileFromUrl}
         forceFilter="image"
@@ -1210,7 +1125,7 @@ export const ImageTo3DExperience = ({
             className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-[3px] border border-white/15 bg-black/60 text-white transition-colors hover:border-white/30 hover:bg-black"
             onClick={() => setPreviewImage(null)}
           >
-            <XIcon  className="h-4 w-4" />
+            <XIcon className="h-4 w-4" />
           </button>
           <img
             src={previewImage}

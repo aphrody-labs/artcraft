@@ -1,4 +1,3 @@
-import { v4 as uuidv4 } from "uuid";
 import { ApiManager, ApiResponse } from "./ApiManager.js";
 import { FilterEngineCategories } from "./enums/QueryFilters.js";
 import { Visibility } from "./enums/Visibility.js";
@@ -177,7 +176,7 @@ export class MediaUploadApi extends ApiManager {
     uuid,
     maybe_title,
     maybe_visibility = Visibility.Public,
-    is_intermediate_system_file = EIntermediateFile.true
+    is_intermediate_system_file = EIntermediateFile.true,
   }: {
     blob: Blob;
     fileName: string;
@@ -370,8 +369,7 @@ export class MediaUploadApi extends ApiManager {
 
 // --- Upload media helpers ---
 
-const getFileName = (file: File) =>
-  file.name.substring(0, file.name.lastIndexOf("."));
+const getFileName = (file: File) => file.name.substring(0, file.name.lastIndexOf("."));
 
 export type UploadMediaFn = (args: {
   title: string;
@@ -379,16 +377,12 @@ export type UploadMediaFn = (args: {
   progressCallback: (newState: UploaderState) => void;
 }) => Promise<void>;
 
-export const UploadImageMedia: UploadMediaFn = async ({
-  title,
-  assetFile,
-  progressCallback,
-}) => {
+export const UploadImageMedia: UploadMediaFn = async ({ title, assetFile, progressCallback }) => {
   const api = new MediaUploadApi();
   progressCallback({ status: UploaderStates.uploadingImage });
 
   const res = await api.UploadImage({
-    uuid: uuidv4(),
+    uuid: crypto.randomUUID(),
     blob: assetFile,
     fileName: getFileName(assetFile),
     maybe_title: "char_frame_" + title,
@@ -406,16 +400,12 @@ export const UploadImageMedia: UploadMediaFn = async ({
   progressCallback({ status: UploaderStates.success, data: res.data });
 };
 
-export const UploadVideoMedia: UploadMediaFn = async ({
-  title,
-  assetFile,
-  progressCallback,
-}) => {
+export const UploadVideoMedia: UploadMediaFn = async ({ title, assetFile, progressCallback }) => {
   const api = new MediaUploadApi();
   progressCallback({ status: UploaderStates.uploadingImage });
 
   const res = await api.UploadNewVideo({
-    uuid: uuidv4(),
+    uuid: crypto.randomUUID(),
     blob: assetFile,
     fileName: getFileName(assetFile),
     maybe_title: "ref_video_" + title,
@@ -433,16 +423,12 @@ export const UploadVideoMedia: UploadMediaFn = async ({
   progressCallback({ status: UploaderStates.success, data: res.data });
 };
 
-export const UploadAudioMedia: UploadMediaFn = async ({
-  title,
-  assetFile,
-  progressCallback,
-}) => {
+export const UploadAudioMedia: UploadMediaFn = async ({ title, assetFile, progressCallback }) => {
   const api = new MediaUploadApi();
   progressCallback({ status: UploaderStates.uploadingImage });
 
   const res = await api.UploadAudio({
-    uuid: uuidv4(),
+    uuid: crypto.randomUUID(),
     blob: assetFile,
     fileName: getFileName(assetFile),
     maybe_title: "ref_audio_" + title,

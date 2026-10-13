@@ -19,15 +19,8 @@ interface Props {
   };
 }
 
-export function UploadModalMedia({
-  isOpen,
-  onClose,
-  onSuccess,
-  title,
-  fileTypes,
-}: Props) {
-  const [uploaderState, setUploaderState] =
-    useState<UploaderState>(initialUploaderState);
+export function UploadModalMedia({ isOpen, onClose, onSuccess, title, fileTypes }: Props) {
+  const [uploaderState, setUploaderState] = useState<UploaderState>(initialUploaderState);
 
   const updateUploaderState = (newState: UploaderState) => {
     setUploaderState(newState);
@@ -96,6 +89,7 @@ export function UploadModalMedia({
           />
         );
     }
+    return null;
   };
 
   return (

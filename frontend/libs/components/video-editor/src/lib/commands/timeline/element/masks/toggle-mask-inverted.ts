@@ -20,9 +20,7 @@ export function toggleMaskInvertedOnElement({
       inverted: !mask.params.inverted,
     },
   });
-  const updatedMasks = currentMasks.map((mask) =>
-    mask.id !== maskId ? mask : toggleMask(mask),
-  );
+  const updatedMasks = currentMasks.map((mask) => (mask.id !== maskId ? mask : toggleMask(mask)));
 
   return { ...element, masks: updatedMasks };
 }
@@ -70,7 +68,7 @@ export class ToggleMaskInvertedCommand extends Command {
     return undefined;
   }
 
-  undo(): void {
+  override undo(): void {
     if (this.savedState) {
       const editor = EditorCore.getInstance();
       editor.timeline.updateTracks(this.savedState);

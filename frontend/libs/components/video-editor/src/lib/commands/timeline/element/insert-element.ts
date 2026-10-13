@@ -54,14 +54,8 @@ export class InsertElementCommand extends Command {
 
     const totalElementsInTimeline =
       this.savedState.main.elements.length +
-      this.savedState.overlay.reduce(
-        (total, track) => total + track.elements.length,
-        0,
-      ) +
-      this.savedState.audio.reduce(
-        (total, track) => total + track.elements.length,
-        0,
-      );
+      this.savedState.overlay.reduce((total, track) => total + track.elements.length, 0) +
+      this.savedState.audio.reduce((total, track) => total + track.elements.length, 0);
     const isFirstElement = totalElementsInTimeline === 0;
 
     const newElement = this.buildElement({ element: this.element });
@@ -77,26 +71,20 @@ export class InsertElementCommand extends Command {
     const { updatedTracks, targetTrackId } = updateResult;
     this.targetTrackId = targetTrackId;
 
-    const isVisualMedia =
-      newElement.type === "video" || newElement.type === "image";
+    const isVisualMedia = newElement.type === "video" || newElement.type === "image";
 
     if (isFirstElement && isVisualMedia) {
       const mediaAssets = editor.media.getAssets();
       const activeProject = editor.project.getActive();
-      const asset = mediaAssets.find(
-        (item: MediaAsset) => item.id === newElement.mediaId,
-      );
+      const asset = mediaAssets.find((item: MediaAsset) => item.id === newElement.mediaId);
 
       if (asset?.width && asset?.height) {
         const nextCanvasSize = { width: asset.width, height: asset.height };
-        const shouldSetOriginalCanvasSize =
-          !activeProject?.settings.originalCanvasSize;
+        const shouldSetOriginalCanvasSize = !activeProject?.settings.originalCanvasSize;
         editor.project.updateSettings({
           settings: {
             canvasSize: nextCanvasSize,
-            ...(shouldSetOriginalCanvasSize
-              ? { originalCanvasSize: nextCanvasSize }
-              : {}),
+            ...(shouldSetOriginalCanvasSize ? { originalCanvasSize: nextCanvasSize } : {}),
           },
           pushHistory: false,
         });
@@ -114,9 +102,7 @@ export class InsertElementCommand extends Command {
 
     return {
       selection: {
-        selectedElements: [
-          { trackId: targetTrackId, elementId: this.elementId },
-        ],
+        selectedElements: [{ trackId: targetTrackId, elementId: this.elementId }],
         selectedKeyframes: [],
         keyframeSelectionAnchor: null,
         selectedMaskPoints: null,
@@ -124,7 +110,7 @@ export class InsertElementCommand extends Command {
     };
   }
 
-  undo(): void {
+  override undo(): void {
     if (this.savedState) {
       const editor = EditorCore.getInstance();
       editor.timeline.updateTracks(this.savedState);
@@ -139,11 +125,7 @@ export class InsertElementCommand extends Command {
     return this.targetTrackId;
   }
 
-  private buildElement({
-    element,
-  }: {
-    element: CreateTimelineElement;
-  }): TimelineElement {
+  private buildElement({ element }: { element: CreateTimelineElement }): TimelineElement {
     return {
       ...element,
       id: this.elementId,
@@ -154,21 +136,13 @@ export class InsertElementCommand extends Command {
     } as TimelineElement;
   }
 
-  private validateElementBasics({
-    element,
-  }: {
-    element: CreateTimelineElement;
-  }): boolean {
+  private validateElementBasics({ element }: { element: CreateTimelineElement }): boolean {
     if (requiresMediaId({ element }) && !("mediaId" in element)) {
       console.error("Element requires mediaId");
       return false;
     }
 
-    if (
-      element.type === "audio" &&
-      element.sourceType === "library" &&
-      !element.sourceUrl
-    ) {
+    if (element.type === "audio" && element.sourceType === "library" && !element.sourceUrl) {
       console.error("Library audio element must have sourceUrl");
       return false;
     }
@@ -180,10 +154,7 @@ export class InsertElementCommand extends Command {
 
     if (element.type === "graphic") {
       registerDefaultGraphics();
-      if (
-        !element.definitionId ||
-        !graphicsRegistry.has(element.definitionId)
-      ) {
+      if (!element.definitionId || !graphicsRegistry.has(element.definitionId)) {
         console.error("Graphic element must have a valid definitionId");
         return false;
       }
@@ -219,9 +190,7 @@ export class InsertElementCommand extends Command {
         trackType: placement.trackType,
       })
     ) {
-      console.error(
-        `${element.type} elements cannot be placed on ${placement.trackType} tracks`,
-      );
+      console.error(`${element.type} elements cannot be placed on ${placement.trackType} tracks`);
       return null;
     }
 

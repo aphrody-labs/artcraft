@@ -26,9 +26,10 @@ export class UpdateProjectSettingsCommand extends Command {
 
     editor.project.setActiveProject({ project: updatedProject });
     editor.save.markDirty();
+    return undefined;
   }
 
-  undo(): void {
+  override undo(): void {
     if (!this.savedSettings || !this.savedUpdatedAt) return;
     const editor = EditorCore.getInstance();
     const activeProject = editor.project.getActive();

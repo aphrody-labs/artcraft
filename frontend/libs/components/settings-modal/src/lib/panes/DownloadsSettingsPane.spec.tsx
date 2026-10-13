@@ -1,9 +1,10 @@
+import { stubGlobal, restoreGlobals } from "../../../../../../tools/testing/globals";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, expect, it, vi } from "bun:test";
 import { DownloadsSettingsPane } from "./DownloadsSettingsPane";
 
-const api = vi.hoisted(() => ({ get: vi.fn(), update: vi.fn() }));
+const api = (() => ({ get: vi.fn(), update: vi.fn() }))();
 
 vi.mock("@storyteller/tauri-api", () => ({
   GetAppPreferences: api.get,
@@ -20,11 +21,14 @@ vi.mock("@storyteller/tauri-api", () => ({
 vi.mock("@tauri-apps/plugin-dialog", () => ({ open: vi.fn() }));
 
 beforeEach(() => {
-  vi.stubGlobal("ResizeObserver", class {
-    observe() {}
-    unobserve() {}
-    disconnect() {}
-  });
+  stubGlobal(
+    "ResizeObserver",
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    },
+  );
   let preferences = {
     preferred_download_directory: { custom: "/existing/downloads" },
     auto_download: false,
@@ -40,7 +44,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
-  vi.unstubAllGlobals();
+  restoreGlobals();
 });
 
 it("persists Auto Download using Tauri and keeps the existing directory", async () => {
@@ -57,7 +61,9 @@ it("persists Auto Download using Tauri and keeps the existing directory", async 
   cleanup();
   render(<DownloadsSettingsPane />);
   await screen.findByText("/existing/downloads");
-  expect(screen.getByRole("switch", { name: "Auto Download" }).getAttribute("aria-checked")).toBe("true");
+  expect(screen.getByRole("switch", { name: "Auto Download" }).getAttribute("aria-checked")).toBe(
+    "true",
+  );
 });
 
 it("saves a custom format explicitly, reloads it, and restores the app convention", async () => {
@@ -72,17 +78,24 @@ it("saves a custom format explicitly, reloads it, and restores the app conventio
   await user.paste("project_{model}_{YYYY}_{batch_index}");
   expect(api.update).not.toHaveBeenCalled();
   await user.click(screen.getByRole("button", { name: "Save format" }));
-  await waitFor(() => expect(api.update).toHaveBeenCalledWith({
-    preference: "preferred_download_filename",
-    value: { custom_format: "project_{model}_{YYYY}_{batch_index}" },
-  }));
+  await waitFor(() =>
+    expect(api.update).toHaveBeenCalledWith({
+      preference: "preferred_download_filename",
+      value: { custom_format: "project_{model}_{YYYY}_{batch_index}" },
+    }),
+  );
   cleanup();
   render(<DownloadsSettingsPane />);
-  expect((await screen.findByRole("textbox", { name: "Custom format" }) as HTMLInputElement).value).toBe("project_{model}_{YYYY}_{batch_index}");
+  expect(
+    ((await screen.findByRole("textbox", { name: "Custom format" })) as HTMLInputElement).value,
+  ).toBe("project_{model}_{YYYY}_{batch_index}");
   await user.click(screen.getByRole("button", { name: "Preferred download naming scheme" }));
   await user.click(screen.getByRole("option", { name: "ArtCraft convention" }));
   await waitFor(() => expect(screen.queryByRole("textbox", { name: "Custom format" })).toBeNull());
-  expect(api.update).toHaveBeenLastCalledWith({ preference: "preferred_download_filename", value: "artcraft_convention" });
+  expect(api.update).toHaveBeenLastCalledWith({
+    preference: "preferred_download_filename",
+    value: "artcraft_convention",
+  });
 });
 
 it("rejects unsafe names and shows persistence failures without enabling Auto Download", async () => {
@@ -100,5 +113,7 @@ it("rejects unsafe names and shows persistence failures without enabling Auto Do
   api.update.mockRejectedValueOnce(new Error("Cannot save preferences"));
   await user.click(screen.getByRole("switch", { name: "Auto Download" }));
   await screen.findByText("Error: Cannot save preferences");
-  expect(screen.getByRole("switch", { name: "Auto Download" }).getAttribute("aria-checked")).toBe("false");
+  expect(screen.getByRole("switch", { name: "Auto Download" }).getAttribute("aria-checked")).toBe(
+    "false",
+  );
 });

@@ -1,5 +1,5 @@
 import { act, cleanup, renderHook } from "@testing-library/react";
-import { afterEach, expect, it } from "vitest";
+import { afterEach, expect, it } from "bun:test";
 import { GenerationProvider } from "@storyteller/api-enums";
 import { ModelPage } from "./model-pages";
 import {
@@ -11,7 +11,11 @@ import {
 const RETIRED_SELECTIONS = [
   { page: ModelPage.TextToImage, modelId: "gpt_image_1", provider: GenerationProvider.Sora },
   { page: ModelPage.ImageToVideo, modelId: "sora_2", provider: GenerationProvider.Sora },
-  { page: ModelPage.ImageTo3DWorld, modelId: "marble_0p1_plus", provider: GenerationProvider.WorldLabs },
+  {
+    page: ModelPage.ImageTo3DWorld,
+    modelId: "marble_0p1_plus",
+    provider: GenerationProvider.WorldLabs,
+  },
 ];
 
 afterEach(() => {
@@ -30,8 +34,9 @@ it.each(RETIRED_SELECTIONS)(
     expect(getSelectedProviderForModel(page, modelId)).toBe(GenerationProvider.Artcraft);
 
     act(() => useClassyModelSelectorStore.getState().setSelectedProvider(page, modelId, provider));
-    expect(useClassyModelSelectorStore.getState().selectedProviders[page]?.[modelId])
-      .toBe(GenerationProvider.Artcraft);
+    expect(useClassyModelSelectorStore.getState().selectedProviders[page]?.[modelId]).toBe(
+      GenerationProvider.Artcraft,
+    );
   },
 );
 
@@ -40,7 +45,11 @@ it("preserves other provider selections and missing defaults", () => {
   const modelId = "midjourney";
   const { result } = renderHook(() => useSelectedProviderForModel(page, modelId));
   expect(result.current).toBeUndefined();
-  act(() => useClassyModelSelectorStore.getState().setSelectedProvider(page, modelId, GenerationProvider.Midjourney));
+  act(() =>
+    useClassyModelSelectorStore
+      .getState()
+      .setSelectedProvider(page, modelId, GenerationProvider.Midjourney),
+  );
   expect(result.current).toBe(GenerationProvider.Midjourney);
   expect(getSelectedProviderForModel(page, modelId)).toBe(GenerationProvider.Midjourney);
 });

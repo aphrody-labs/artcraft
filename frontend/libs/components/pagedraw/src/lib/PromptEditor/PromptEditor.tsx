@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { v4 as uuidv4 } from "uuid";
 import ImageStyleSelector from "./ImageStyleSelector";
 import { ImageStyle } from "./types";
 import { PromptBox2D, PromptBox2DProps } from "@storyteller/ui-promptbox";
@@ -25,7 +24,7 @@ const PromptEditor: React.FC<PromptBox2DProps> = ({
   const handleImageSelect = (file: File) => {
     const imageUrl = URL.createObjectURL(file);
     const newImage: ImageStyle = {
-      id: uuidv4(),
+      id: crypto.randomUUID(),
       url: imageUrl,
       weight: 0.5,
     };

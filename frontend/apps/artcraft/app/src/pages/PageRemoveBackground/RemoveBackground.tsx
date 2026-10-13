@@ -1,14 +1,17 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import { DownloadIcon, EyeIcon, ImagesIcon, PlusIcon, UploadIcon, WandSparklesIcon } from "lucide-react";
+import {
+  DownloadIcon,
+  EyeIcon,
+  ImagesIcon,
+  PlusIcon,
+  UploadIcon,
+  WandSparklesIcon,
+} from "lucide-react";
 import { Button } from "@storyteller/ui-button";
 import { GalleryItem, GalleryModal } from "@storyteller/ui-gallery-modal";
 import toast from "react-hot-toast";
-import { v4 as uuidv4 } from "uuid";
 import { UploadEntryCard } from "../../components/media/UploadEntryCard";
-import {
-  useRemoveBackgroundStore,
-  ProcessedImage,
-} from "./RemoveBackgroundStore";
+import { useRemoveBackgroundStore, ProcessedImage } from "./RemoveBackgroundStore";
 import {
   EnqueueImageBgRemoval,
   useCanvasBgRemovedEvent,
@@ -35,9 +38,7 @@ const convertFileToBase64 = (file: File): Promise<string> => {
 
 export const RemoveBackground = () => {
   const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
-  const [selectedGalleryImages, setSelectedGalleryImages] = useState<string[]>(
-    [],
-  );
+  const [selectedGalleryImages, setSelectedGalleryImages] = useState<string[]>([]);
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
@@ -129,7 +130,7 @@ export const RemoveBackground = () => {
         setIsLoadingImage(false);
         setIsProcessing(true);
 
-        const jobId = uuidv4();
+        const jobId = crypto.randomUUID();
         setPendingJobId(jobId);
 
         await EnqueueImageBgRemoval({
@@ -164,13 +165,13 @@ export const RemoveBackground = () => {
       {
         label: "Upload Image",
         selected: false,
-        icon: <UploadIcon  className="h-4 w-4" />,
+        icon: <UploadIcon className="h-4 w-4" />,
         action: "upload",
       },
       {
         label: "Choose from Library",
         selected: false,
-        icon: <ImagesIcon  className="h-4 w-4" />,
+        icon: <ImagesIcon className="h-4 w-4" />,
         action: "library",
       },
     ],
@@ -209,8 +210,7 @@ export const RemoveBackground = () => {
       }
       if (progressBarRef.current) {
         progressBarRef.current.style.left = `${progressPercent}%`;
-        progressBarRef.current.style.display =
-          progressPercent < 100 ? "block" : "none";
+        progressBarRef.current.style.display = progressPercent < 100 ? "block" : "none";
       }
 
       if (progress < 1) {
@@ -242,7 +242,7 @@ export const RemoveBackground = () => {
     if (event.maybe_frontend_subscriber_id !== pendingJobIdRef.current) return;
 
     const newImage: ProcessedImage = {
-      id: uuidv4(),
+      id: crypto.randomUUID(),
       originalUrl: currentOriginalUrlRef.current,
       processedUrl: event.image_cdn_url,
       timestamp: Date.now(),
@@ -323,7 +323,7 @@ export const RemoveBackground = () => {
         setIsLoadingImage(false);
         setIsProcessing(true);
 
-        const jobId = uuidv4();
+        const jobId = crypto.randomUUID();
         setPendingJobId(jobId);
 
         await EnqueueImageBgRemoval({
@@ -395,7 +395,7 @@ export const RemoveBackground = () => {
         setIsLoadingImage(false);
         setIsProcessing(true);
 
-        const jobId = uuidv4();
+        const jobId = crypto.randomUUID();
         setPendingJobId(jobId);
 
         await EnqueueImageBgRemoval({
@@ -581,16 +581,11 @@ export const RemoveBackground = () => {
                       disabled={!activeImage || isProcessing}
                       className={twMerge(
                         "border-ui-controls-border select-none border px-6 py-2.5 text-sm font-semibold transition-all",
-                        isHoldingCompare
-                          ? "border-white bg-white/10"
-                          : "border-ui-controls-border",
-                        (!activeImage || isProcessing) &&
-                          "cursor-not-allowed opacity-50",
+                        isHoldingCompare ? "border-white bg-white/10" : "border-ui-controls-border",
+                        (!activeImage || isProcessing) && "cursor-not-allowed opacity-50",
                       )}
                     >
-                      {isHoldingCompare
-                        ? "Showing Original"
-                        : "Hold to Compare"}
+                      {isHoldingCompare ? "Showing Original" : "Hold to Compare"}
                     </Button>
                     <Button
                       variant="primary"
@@ -599,8 +594,7 @@ export const RemoveBackground = () => {
                       disabled={!activeImage || isProcessing}
                       className={twMerge(
                         "select-none px-6 py-2.5 text-sm font-semibold transition-all",
-                        (!activeImage || isProcessing) &&
-                          "cursor-not-allowed opacity-50",
+                        (!activeImage || isProcessing) && "cursor-not-allowed opacity-50",
                       )}
                     >
                       Download
@@ -625,9 +619,7 @@ export const RemoveBackground = () => {
                         <div className="relative z-10 flex flex-col items-center gap-4">
                           <div className="relative">
                             <div className="h-16 w-16 animate-spin rounded-full border-2 border-white/20 border-t-white" />
-                            <WandSparklesIcon
-                              
-                              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-2xl text-white" />
+                            <WandSparklesIcon className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-2xl text-white" />
                           </div>
                           <span className="font-mono text-sm font-semibold uppercase tracking-[0.12em] text-white">
                             Removing Background...
@@ -647,8 +639,7 @@ export const RemoveBackground = () => {
                             linear-gradient(-45deg, transparent 75%, #1a1a1a 75%)
                           `,
                             backgroundSize: "16px 16px",
-                            backgroundPosition:
-                              "0 0, 0 8px, 8px -8px, -8px 0px",
+                            backgroundPosition: "0 0, 0 8px, 8px -8px, -8px 0px",
                             backgroundColor: "#2a2a2a",
                           }}
                         />
@@ -663,8 +654,7 @@ export const RemoveBackground = () => {
                           ref={clipLayerRef}
                           className={twMerge(
                             "absolute inset-0",
-                            animationComplete &&
-                              "transition-[clip-path] duration-300",
+                            animationComplete && "transition-[clip-path] duration-300",
                           )}
                           style={{
                             clipPath: `inset(0 0 0 ${revealProgressRef.current}%)`,
@@ -684,8 +674,7 @@ export const RemoveBackground = () => {
                             left: `${revealProgressRef.current}%`,
                             transform: "translateX(-50%)",
                             display:
-                              animationComplete ||
-                              revealProgressRef.current >= 100
+                              animationComplete || revealProgressRef.current >= 100
                                 ? "none"
                                 : "block",
                           }}
@@ -714,9 +703,7 @@ export const RemoveBackground = () => {
                       "h-14 w-14 rounded-[3px] border border-dashed border-white/20 bg-white/[0.015] hover:border-white/40 hover:bg-white/5",
                       isProcessing && "cursor-not-allowed opacity-50",
                     )}
-                    triggerIcon={
-                      <PlusIcon  className="text-xl" />
-                    }
+                    triggerIcon={<PlusIcon className="text-xl" />}
                   />
 
                   {images.map((img) => (

@@ -2,22 +2,13 @@ import { Command, type CommandResult } from "../../base-command";
 import type { SceneTracks, TrackType } from "../../../timeline/types";
 import { generateUUID } from "../../../utils/id";
 import { EditorCore } from "../../../core";
-import {
-  buildEmptyTrack,
-  getDefaultInsertIndexForTrack,
-} from "../../../timeline/placement";
+import { buildEmptyTrack, getDefaultInsertIndexForTrack } from "../../../timeline/placement";
 
 export class AddTrackCommand extends Command {
   private trackId: string;
   private savedState: SceneTracks | null = null;
 
-  constructor({
-    type,
-    index,
-  }: {
-    type: TrackType;
-    index?: number;
-  }) {
+  constructor({ type, index }: { type: TrackType; index?: number }) {
     super();
     this.type = type;
     this.index = index;
@@ -56,7 +47,7 @@ export class AddTrackCommand extends Command {
     return undefined;
   }
 
-  undo(): void {
+  override undo(): void {
     if (this.savedState) {
       const editor = EditorCore.getInstance();
       editor.timeline.updateTracks(this.savedState);

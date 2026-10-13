@@ -1,8 +1,4 @@
-import {
-  Command,
-  createElementSelectionResult,
-  type CommandResult,
-} from "../../base-command";
+import { Command, createElementSelectionResult, type CommandResult } from "../../base-command";
 import type { SceneTracks, TimelineElement } from "../../../timeline/types";
 import { generateUUID } from "../../../utils/id";
 import { EditorCore } from "../../../core";
@@ -101,7 +97,7 @@ export class DuplicateElementsCommand extends Command {
     return undefined;
   }
 
-  undo(): void {
+  override undo(): void {
     if (this.savedState) {
       const editor = EditorCore.getInstance();
       editor.timeline.updateTracks(this.savedState);

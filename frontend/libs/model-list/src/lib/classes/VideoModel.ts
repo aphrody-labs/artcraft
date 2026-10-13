@@ -1,4 +1,4 @@
-import { ModelCreator } from "src/index.js";
+import { ModelCreator } from "./metadata/ModelCreator.js";
 import { Model, ModelKind } from "./Model.js";
 import { ModelCategory } from "../legacy/ModelConfig.js";
 import { ModelTag } from "./metadata/ModelTag.js";
@@ -46,7 +46,6 @@ export class VideoModel extends Model {
   readonly generationCountOptions?: number[];
   readonly defaultGenerationCount?: number;
   readonly defaultAspectRatio?: string;
-
 
   // Whether the model supports multi-image reference mode
   readonly supportsReferenceMode?: boolean;

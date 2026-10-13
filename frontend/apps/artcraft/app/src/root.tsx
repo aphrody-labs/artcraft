@@ -1,13 +1,7 @@
-import { LinksFunction } from "@remix-run/deno";
+import type { LinksFunction } from "@remix-run/node";
 import { posthog } from "posthog-js";
 import { PostHogProvider } from "posthog-js/react";
-import {
-  Links,
-  Meta,
-  Outlet,
-  Scripts,
-  ScrollRestoration,
-} from "@remix-run/react";
+import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "@remix-run/react";
 
 import normalizeCss from "./styles/normalize.css?url";
 import tailwindCss from "./styles/tailwind.css?url";
@@ -52,9 +46,7 @@ export default function App() {
         <Links />
       </head>
       <body className="overflow-hidden bg-ui-background">
-        <div className="topbar-spacer" 
-         data-tauri-drag-region={true}
-        />
+        <div className="topbar-spacer" data-tauri-drag-region={true} />
         <PostHogProvider client={posthog}>
           <Outlet />
         </PostHogProvider>

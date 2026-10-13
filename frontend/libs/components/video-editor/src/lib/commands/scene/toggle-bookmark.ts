@@ -2,10 +2,7 @@ import { Command, type CommandResult } from "../base-command";
 import { EditorCore } from "../../core";
 import type { TScene } from "../../timeline/types";
 import { updateSceneInArray } from "../../timeline/scenes";
-import {
-  getFrameTime,
-  toggleBookmarkInArray,
-} from "../../timeline/bookmarks";
+import { getFrameTime, toggleBookmarkInArray } from "../../timeline/bookmarks";
 import { type MediaTime, ZERO_MEDIA_TIME } from "../../wasm";
 
 export class ToggleBookmarkCommand extends Command {
@@ -45,9 +42,10 @@ export class ToggleBookmarkCommand extends Command {
     });
 
     editor.scenes.setScenes({ scenes: updatedScenes });
+    return undefined;
   }
 
-  undo(): void {
+  override undo(): void {
     if (this.savedScenes) {
       const editor = EditorCore.getInstance();
       editor.scenes.setScenes({ scenes: this.savedScenes });

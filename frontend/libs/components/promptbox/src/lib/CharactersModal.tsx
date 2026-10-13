@@ -1,15 +1,21 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Modal } from "@storyteller/ui-modal";
-import { ArrowLeftIcon, EyeIcon, ImagesIcon, LoaderCircleIcon, PenIcon, PlusIcon, Trash2Icon, UploadIcon, UsersIcon, XIcon } from "lucide-react";
-import { twMerge } from "tailwind-merge";
 import {
-  CharactersApi,
-  Character,
-  MediaUploadApi,
-} from "@storyteller/api";
+  ArrowLeftIcon,
+  EyeIcon,
+  ImagesIcon,
+  LoaderCircleIcon,
+  PenIcon,
+  PlusIcon,
+  Trash2Icon,
+  UploadIcon,
+  UsersIcon,
+  XIcon,
+} from "lucide-react";
+import { twMerge } from "tailwind-merge";
+import { CharactersApi, Character, MediaUploadApi } from "@storyteller/api";
 import { downloadFileFromUrl } from "@storyteller/tauri-api";
 import { toast } from "@storyteller/ui-toaster";
-import { v4 as uuidv4 } from "uuid";
 import { GalleryItem, GalleryModal } from "@storyteller/ui-gallery-modal";
 import { useCharactersStore } from "./promptStore";
 import { DeckPreviewModal } from "./deck/DeckCard";
@@ -44,21 +50,12 @@ interface PendingCharacter {
 
 const POLL_INTERVAL_MS = 5000;
 const PENDING_STALE_MS = 3 * 60 * 1000;
-const FIELD_LABEL_CLASSES =
-  "mb-0 text-[11px] tracking-[0.12em] text-base-fg/70";
+const FIELD_LABEL_CLASSES = "mb-0 text-[11px] tracking-[0.12em] text-base-fg/70";
 
-export const CharactersModal = ({
-  isOpen,
-  onClose,
-  onSelectCharacter,
-}: CharactersModalProps) => {
+export const CharactersModal = ({ isOpen, onClose, onSelectCharacter }: CharactersModalProps) => {
   const [view, setView] = useState<ModalView>("list");
-  const [editingCharacter, setEditingCharacter] = useState<Character | null>(
-    null,
-  );
-  const [pendingCharacters, setPendingCharacters] = useState<
-    PendingCharacter[]
-  >([]);
+  const [editingCharacter, setEditingCharacter] = useState<Character | null>(null);
+  const [pendingCharacters, setPendingCharacters] = useState<PendingCharacter[]>([]);
   const [refreshKey, setRefreshKey] = useState(0);
 
   const handleClose = () => {
@@ -79,10 +76,7 @@ export const CharactersModal = ({
   };
 
   const handleCreated = (pending: { name: string; previewUrl?: string }) => {
-    setPendingCharacters((prev) => [
-      { ...pending, createdAt: Date.now() },
-      ...prev,
-    ]);
+    setPendingCharacters((prev) => [{ ...pending, createdAt: Date.now() }, ...prev]);
     setView("list");
     setRefreshKey((k) => k + 1);
   };
@@ -182,10 +176,7 @@ export const CharactersModal = ({
             onPendingResolved={removePending}
           />
         ) : view === "create" ? (
-          <NewCharacterView
-            onBack={() => setView("list")}
-            onCreated={handleCreated}
-          />
+          <NewCharacterView onBack={() => setView("list")} onCreated={handleCreated} />
         ) : editingCharacter ? (
           <EditCharacterView
             character={editingCharacter}
@@ -220,9 +211,7 @@ const CharacterListView = ({
 }) => {
   const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
-  const [previewCharacter, setPreviewCharacter] = useState<Character | null>(
-    null,
-  );
+  const [previewCharacter, setPreviewCharacter] = useState<Character | null>(null);
 
   const storeSetCharacters = useCharactersStore((s) => s.setCharacters);
   const storeSetLoaded = useCharactersStore((s) => s.setLoaded);
@@ -276,8 +265,8 @@ const CharacterListView = ({
       title: "Delete character?",
       message: (
         <p className="text-sm text-white/70">
-          This will permanently delete <strong>{character.name}</strong>. This
-          action cannot be undone.
+          This will permanently delete <strong>{character.name}</strong>. This action cannot be
+          undone.
         </p>
       ),
       primaryActionText: "Delete",
@@ -298,9 +287,7 @@ const CharacterListView = ({
           });
 
           if (res.success) {
-            setCharacters((prev) =>
-              prev.filter((c) => c.token !== character.token),
-            );
+            setCharacters((prev) => prev.filter((c) => c.token !== character.token));
             storeRemoveCharacter(character.token);
             toast.success(`Character "${character.name}" deleted`);
           } else {
@@ -357,7 +344,7 @@ const CharacterListView = ({
             className="flex flex-col items-center justify-center gap-2 overflow-hidden border-2 border-dashed border-base-fg/15 bg-base-fg/[0.05] text-base-fg/60 transition-colors hover:border-base-fg/30 hover:text-base-fg/80"
           >
             <div className="flex aspect-square w-full flex-col items-center justify-center gap-2">
-              <PlusIcon  className="text-lg" />
+              <PlusIcon className="text-lg" />
               <span className="text-sm font-medium">Create New</span>
             </div>
           </button>
@@ -377,22 +364,16 @@ const CharacterListView = ({
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center text-base-fg/20">
-                    <UsersIcon  className="text-2xl" />
+                    <UsersIcon className="text-2xl" />
                   </div>
                 )}
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/40">
-                  <LoaderCircleIcon
-                    
-                    className="text-lg text-white/80 animate-spin" />
-                  <span className="text-xs font-medium text-white/80">
-                    Creating...
-                  </span>
+                  <LoaderCircleIcon className="text-lg text-white/80 animate-spin" />
+                  <span className="text-xs font-medium text-white/80">Creating...</span>
                 </div>
               </div>
               <div className="px-2 py-1.5 text-center">
-                <p className="truncate text-xs font-medium text-base-fg/50">
-                  {pending.name}
-                </p>
+                <p className="truncate text-xs font-medium text-base-fg/50">{pending.name}</p>
               </div>
             </div>
           ))}
@@ -419,16 +400,12 @@ const CharacterListView = ({
                       />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center text-base-fg/20">
-                        <UsersIcon
-                          
-                          className="text-2xl" />
+                        <UsersIcon className="text-2xl" />
                       </div>
                     )}
                   </div>
                   <div className="px-2 py-1.5">
-                    <p className="truncate text-xs font-medium text-base-fg/80">
-                      {character.name}
-                    </p>
+                    <p className="truncate text-xs font-medium text-base-fg/80">{character.name}</p>
                   </div>
                 </button>
 
@@ -445,7 +422,7 @@ const CharacterListView = ({
                         title="View full size"
                         className="flex h-7 w-7 items-center justify-center bg-black/60 text-white/80 transition-colors hover:bg-black/80"
                       >
-                        <EyeIcon  className="text-[10px]" />
+                        <EyeIcon className="text-[10px]" />
                       </button>
                     )}
                     {isUserCreated && (
@@ -457,9 +434,7 @@ const CharacterListView = ({
                           }}
                           className="flex h-7 w-7 items-center justify-center bg-black/60 text-white/80 transition-colors hover:bg-black/80"
                         >
-                          <PenIcon
-                            
-                            className="text-[10px]" />
+                          <PenIcon className="text-[10px]" />
                         </button>
                         <button
                           onClick={(e) => {
@@ -468,9 +443,7 @@ const CharacterListView = ({
                           }}
                           className="flex h-7 w-7 items-center justify-center bg-black/60 text-white/80 transition-colors hover:bg-red-500"
                         >
-                          <Trash2Icon
-                            
-                            className="text-[10px]" />
+                          <Trash2Icon className="text-[10px]" />
                         </button>
                       </>
                     )}
@@ -514,9 +487,7 @@ const EditCharacterView = ({
 }) => {
   const updateCharacterInStore = useCharactersStore((s) => s.updateCharacter);
   const [name, setName] = useState(character.name);
-  const [description, setDescription] = useState(
-    character.maybe_description ?? "",
-  );
+  const [description, setDescription] = useState(character.maybe_description ?? "");
   const [saving, setSaving] = useState(false);
 
   const hasChanges =
@@ -598,12 +569,8 @@ const EditCharacterView = ({
 
         {/* Description input */}
         <div className="flex flex-col gap-1.5">
-          <Label
-            htmlFor="edit-character-description"
-            className={FIELD_LABEL_CLASSES}
-          >
-            Description{" "}
-            <span className="font-normal text-base-fg/40">(optional)</span>
+          <Label htmlFor="edit-character-description" className={FIELD_LABEL_CLASSES}>
+            Description <span className="font-normal text-base-fg/40">(optional)</span>
           </Label>
           <textarea
             id="edit-character-description"
@@ -655,15 +622,11 @@ const NewCharacterView = ({
   const dropZoneRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
-  const [selectedGalleryImages, setSelectedGalleryImages] = useState<string[]>(
-    [],
-  );
+  const [selectedGalleryImages, setSelectedGalleryImages] = useState<string[]>([]);
 
   const processFiles = useCallback(
     async (files: FileList | File[]) => {
-      const imageFiles = Array.from(files).filter((f) =>
-        f.type.startsWith("image/"),
-      );
+      const imageFiles = Array.from(files).filter((f) => f.type.startsWith("image/"));
       if (imageFiles.length === 0) {
         toast.error("Please upload image files");
         return;
@@ -671,9 +634,7 @@ const NewCharacterView = ({
 
       // Only keep the first file (single image)
       const file = imageFiles[0]!;
-      const newImages: UploadedImage[] = [
-        { file, url: URL.createObjectURL(file) },
-      ];
+      const newImages: UploadedImage[] = [{ file, url: URL.createObjectURL(file) }];
 
       // Replace any existing image
       setImages((prev) => {
@@ -689,7 +650,7 @@ const NewCharacterView = ({
       for (const img of newImages) {
         try {
           const res = await uploadApi.UploadImage({
-            uuid: uuidv4(),
+            uuid: crypto.randomUUID(),
             blob: img.file,
             fileName: img.file.name,
             maybe_title: `character_ref_${name || "unnamed"}`,
@@ -788,7 +749,7 @@ const NewCharacterView = ({
       const res = await api.CreateCharacter({
         image_media_token: uploadedImages[0]!.mediaToken!,
         model: "seedance_2p0",
-        uuid_idempotency_token: uuidv4(),
+        uuid_idempotency_token: crypto.randomUUID(),
         character_name: name.trim(),
         character_description: description.trim() || null,
       });
@@ -857,9 +818,7 @@ const NewCharacterView = ({
               />
               {!images[0]!.mediaToken && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-                  <LoaderCircleIcon
-                    
-                    className="text-white animate-spin" />
+                  <LoaderCircleIcon className="text-white animate-spin" />
                 </div>
               )}
               <button
@@ -869,34 +828,27 @@ const NewCharacterView = ({
                 }}
                 className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center bg-black/60 text-white/80 opacity-0 transition-all group-hover:opacity-100 hover:bg-red-500"
               >
-                <XIcon  className="text-sm" />
+                <XIcon className="text-sm" />
               </button>
             </div>
           ) : (
             <div className="flex h-full w-full flex-col items-center justify-center text-base-fg/60">
-              <UploadIcon
-                
-                className="mb-2 text-xl text-base-fg/40" />
+              <UploadIcon className="mb-2 text-xl text-base-fg/40" />
               <p className="text-sm">Upload reference image</p>
-              <p className="mb-3 text-xs text-base-fg/40">
-                Click or drag an image here
-              </p>
-              <div
-                className="flex items-center gap-3"
-                onClick={(e) => e.stopPropagation()}
-              >
+              <p className="mb-3 text-xs text-base-fg/40">Click or drag an image here</p>
+              <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
                 <button
                   onClick={() => setIsGalleryOpen(true)}
                   className="flex items-center gap-2 rounded-[3px] border border-base-fg/15 bg-transparent px-3 py-1.5 text-sm text-base-fg/80 transition-colors hover:border-base-fg/25 hover:bg-base-fg/[0.07] hover:text-base-fg"
                 >
-                  <ImagesIcon  className="text-xs" />
+                  <ImagesIcon className="text-xs" />
                   Choose from Library
                 </button>
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   className="flex items-center gap-2 rounded-[3px] border border-base-fg/15 bg-transparent px-3 py-1.5 text-sm text-base-fg/80 transition-colors hover:border-base-fg/25 hover:bg-base-fg/[0.07] hover:text-base-fg"
                 >
-                  <UploadIcon  className="text-xs" />
+                  <UploadIcon className="text-xs" />
                   Upload Image
                 </button>
               </div>
@@ -929,12 +881,8 @@ const NewCharacterView = ({
 
         {/* Description input */}
         <div className="flex flex-col gap-1.5">
-          <Label
-            htmlFor="character-description"
-            className={FIELD_LABEL_CLASSES}
-          >
-            Description{" "}
-            <span className="font-normal text-base-fg/40">(optional)</span>
+          <Label htmlFor="character-description" className={FIELD_LABEL_CLASSES}>
+            Description <span className="font-normal text-base-fg/40">(optional)</span>
           </Label>
           <textarea
             id="character-description"
@@ -958,10 +906,7 @@ const NewCharacterView = ({
           onClick={handleCreate}
           loading={creating}
           disabled={
-            creating ||
-            uploading ||
-            !name.trim() ||
-            images.filter((i) => i.mediaToken).length < 1
+            creating || uploading || !name.trim() || images.filter((i) => i.mediaToken).length < 1
           }
         >
           Create

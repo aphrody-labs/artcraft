@@ -2,22 +2,13 @@ import { Command, type CommandResult } from "../base-command";
 import { EditorCore } from "../../core";
 import type { Bookmark, TScene } from "../../timeline/types";
 import { updateSceneInArray } from "../../timeline/scenes";
-import {
-  getFrameTime,
-  updateBookmarkInArray,
-} from "../../timeline/bookmarks";
+import { getFrameTime, updateBookmarkInArray } from "../../timeline/bookmarks";
 import type { MediaTime } from "../../wasm";
 
 export class UpdateBookmarkCommand extends Command {
   private savedScenes: TScene[] | null = null;
 
-  constructor({
-    time,
-    updates,
-  }: {
-    time: MediaTime;
-    updates: Partial<Omit<Bookmark, "time">>;
-  }) {
+  constructor({ time, updates }: { time: MediaTime; updates: Partial<Omit<Bookmark, "time">> }) {
     super();
     this.time = time;
     this.updates = updates;
@@ -56,9 +47,10 @@ export class UpdateBookmarkCommand extends Command {
     });
 
     editor.scenes.setScenes({ scenes: updatedScenes });
+    return undefined;
   }
 
-  undo(): void {
+  override undo(): void {
     if (this.savedScenes) {
       const editor = EditorCore.getInstance();
       editor.scenes.setScenes({ scenes: this.savedScenes });

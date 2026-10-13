@@ -2,7 +2,10 @@ import { Command, type CommandResult } from "../../base-command";
 import type { SceneTracks } from "../../../timeline/types";
 import { EditorCore } from "../../../core";
 import { canTrackBeHidden } from "../../../timeline/track-capabilities";
-import { findTrackInSceneTracks, updateTrackInSceneTracks } from "../../../timeline/track-element-update";
+import {
+  findTrackInSceneTracks,
+  updateTrackInSceneTracks,
+} from "../../../timeline/track-element-update";
 
 export class ToggleTrackVisibilityCommand extends Command {
   private savedState: SceneTracks | null = null;
@@ -35,9 +38,10 @@ export class ToggleTrackVisibilityCommand extends Command {
     });
 
     editor.timeline.updateTracks(updatedTracks);
+    return undefined;
   }
 
-  undo(): void {
+  override undo(): void {
     if (this.savedState) {
       const editor = EditorCore.getInstance();
       editor.timeline.updateTracks(this.savedState);

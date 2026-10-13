@@ -3,6 +3,7 @@
   "compilerOptions": {
     "outDir": "./out-tsc/vitest",
     "types": [
+      "@aphrody/bun-types",
       "vitest/globals",
       "vitest/importMeta",
       "vite/client",

@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { v4 as uuidv4 } from "uuid";
 
 export interface Board {
   id: string;
@@ -33,7 +32,7 @@ export const useStoryboardStore = create<StoryboardState>((set, get) => ({
 
   addBoard: () => {
     const newBoard: Board = {
-      id: uuidv4(),
+      id: crypto.randomUUID(),
       imageDataUrl: null,
       title: "",
       shotNumber: get().boards.length + 1,

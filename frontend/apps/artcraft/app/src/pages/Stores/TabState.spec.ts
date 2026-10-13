@@ -1,4 +1,4 @@
-import { beforeEach, expect, it } from "vitest";
+import { beforeEach, expect, it } from "bun:test";
 import { useTabStore } from "./TabState";
 import { useSceneStore } from "../../../../../../libs/components/pagedraw/src/lib/stores/SceneState";
 import { Node } from "../../../../../../libs/components/pagedraw/src/lib/Node";
@@ -13,9 +13,16 @@ beforeEach(() => {
 
 it("retains decoded images, selection, model metadata, and history across tab changes", async () => {
   const image = new Node({
-    id: "image", type: "image", x: 10, y: 20, width: 512, height: 512,
-    fill: "transparent", imageFile: new File(["pixels"], "artwork.png"),
-    imageElement: new Image(), modelUrl: "blob:model",
+    id: "image",
+    type: "image",
+    x: 10,
+    y: 20,
+    width: 512,
+    height: 512,
+    fill: "transparent",
+    imageFile: new File(["pixels"], "artwork.png"),
+    imageElement: new Image(),
+    modelUrl: "blob:model",
   });
   useSceneStore.setState({ drawNodes: [image], selectedNodeIds: [image.id] });
   useSceneStore.getState().saveState();
@@ -71,8 +78,14 @@ it("honors the latest rapid navigation request", async () => {
 
 it("still exports a portable scene when explicitly requested", async () => {
   const image = new Node({
-    id: "image", type: "image", x: 0, y: 0, width: 1, height: 1,
-    fill: "transparent", imageFile: new File(["pixels"], "image.png", { type: "image/png" }),
+    id: "image",
+    type: "image",
+    x: 0,
+    y: 0,
+    width: 1,
+    height: 1,
+    fill: "transparent",
+    imageFile: new File(["pixels"], "image.png", { type: "image/png" }),
   });
   useSceneStore.setState({ drawNodes: [image] });
   const exported = JSON.parse(await useSceneStore.getState().exportSceneAsJson());

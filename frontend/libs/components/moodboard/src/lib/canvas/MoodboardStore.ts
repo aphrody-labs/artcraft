@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { v4 as uuidv4 } from "uuid";
 import {
   CardNode,
   GroupNode,
@@ -88,9 +87,7 @@ interface MoodboardState {
   updateNode: (id: string, patch: Partial<MoodboardNode>) => void;
   setCardColor: (id: string, color: string) => void;
   deleteSelected: () => void;
-  applyLayoutPatches: (
-    patches: Array<{ id: string; patch: Partial<MoodboardNode> }>,
-  ) => void;
+  applyLayoutPatches: (patches: Array<{ id: string; patch: Partial<MoodboardNode> }>) => void;
 
   setSelection: (ids: Iterable<string>) => void;
   toggleInSelection: (id: string, additive: boolean) => void;
@@ -159,14 +156,12 @@ export const useMoodboardStore = create<MoodboardState>((set, get) => ({
 
   setTool: (t) => set({ tool: t }),
   toggleSnap: () => set((s) => ({ snapEnabled: !s.snapEnabled })),
-  setGuides: (guides) =>
-    set((s) => ({ transient: { ...s.transient, guides } })),
+  setGuides: (guides) => set((s) => ({ transient: { ...s.transient, guides } })),
   setLastDropPoint: (p) => set({ lastDropPoint: p }),
   setZoom: (z) => set((s) => ({ viewport: { ...s.viewport, zoom: z } })),
   setPan: (p) => set((s) => ({ viewport: { ...s.viewport, pan: p } })),
   setCanvasSize: (sz) => set({ canvasSize: sz }),
-  resetViewport: () =>
-    set({ viewport: { zoom: 1, pan: { x: 0, y: 0 } } }),
+  resetViewport: () => set({ viewport: { zoom: 1, pan: { x: 0, y: 0 } } }),
   fitToContent: (padding = 48) => {
     const { nodes, rootOrder, canvasSize } = get();
     const bounds = computeContentBounds(nodes, rootOrder);
@@ -181,7 +176,7 @@ export const useMoodboardStore = create<MoodboardState>((set, get) => ({
 
   addImage: (src, pos, naturalW, naturalH, mediaId = null) => {
     get().pushHistory();
-    const id = uuidv4();
+    const id = crypto.randomUUID();
     const fit = fitWithinBox(naturalW || 320, naturalH || 320, MAX_IMAGE_DIMENSION);
     const node: ImageNode = {
       id,
@@ -208,7 +203,7 @@ export const useMoodboardStore = create<MoodboardState>((set, get) => ({
 
   addVideo: (src, pos, naturalW, naturalH, mediaId = null) => {
     get().pushHistory();
-    const id = uuidv4();
+    const id = crypto.randomUUID();
     const fit = fitWithinBox(naturalW || 320, naturalH || 320, MAX_IMAGE_DIMENSION);
     const node: VideoNode = {
       id,
@@ -240,7 +235,7 @@ export const useMoodboardStore = create<MoodboardState>((set, get) => ({
 
   addText: (pos) => {
     get().pushHistory();
-    const id = uuidv4();
+    const id = crypto.randomUUID();
     const node: TextNode = {
       id,
       kind: "text",
@@ -362,7 +357,7 @@ export const useMoodboardStore = create<MoodboardState>((set, get) => ({
     if (topLevelIds.length < 2) return null;
 
     get().pushHistory();
-    const groupId = uuidv4();
+    const groupId = crypto.randomUUID();
 
     const aabb = computeAABBById(nodes, topLevelIds);
     if (!aabb) return null;
@@ -396,10 +391,7 @@ export const useMoodboardStore = create<MoodboardState>((set, get) => ({
       newNodes[groupId] = groupNode;
       return {
         nodes: newNodes,
-        rootOrder: [
-          ...s.rootOrder.filter((id) => !topLevelIds.includes(id)),
-          groupId,
-        ],
+        rootOrder: [...s.rootOrder.filter((id) => !topLevelIds.includes(id)), groupId],
         selectedIds: new Set([groupId]),
       };
     });
@@ -425,7 +417,7 @@ export const useMoodboardStore = create<MoodboardState>((set, get) => ({
         if (topLevelIds.length < 2) continue;
         const aabb = computeAABBById(newNodes, topLevelIds);
         if (!aabb) continue;
-        const groupId = uuidv4();
+        const groupId = crypto.randomUUID();
         const groupNode: GroupNode = {
           id: groupId,
           kind: "group",
@@ -449,10 +441,7 @@ export const useMoodboardStore = create<MoodboardState>((set, get) => ({
           } as MoodboardNode;
         });
         newNodes[groupId] = groupNode;
-        newRootOrder = [
-          ...newRootOrder.filter((id) => !topLevelIds.includes(id)),
-          groupId,
-        ];
+        newRootOrder = [...newRootOrder.filter((id) => !topLevelIds.includes(id)), groupId];
         newGroupIds.push(groupId);
       }
       return {
@@ -478,7 +467,7 @@ export const useMoodboardStore = create<MoodboardState>((set, get) => ({
     if (target.parentId !== null || dragged.parentId !== null) return null;
 
     get().pushHistory();
-    const cardId = uuidv4();
+    const cardId = crypto.randomUUID();
     // Target was there first, so it sits on top; the dragged node stacks below.
     const childIds = [targetId, draggedId];
 
@@ -508,10 +497,7 @@ export const useMoodboardStore = create<MoodboardState>((set, get) => ({
       newNodes[cardId] = { ...base, height: computeCardHeight(base, newNodes) };
       return {
         nodes: newNodes,
-        rootOrder: [
-          ...s.rootOrder.filter((id) => id !== targetId && id !== draggedId),
-          cardId,
-        ],
+        rootOrder: [...s.rootOrder.filter((id) => id !== targetId && id !== draggedId), cardId],
         selectedIds: new Set([cardId]),
       };
     });
@@ -547,9 +533,7 @@ export const useMoodboardStore = create<MoodboardState>((set, get) => ({
 
   ungroup: () => {
     const { selectedIds, nodes } = get();
-    const groupIds = Array.from(selectedIds).filter(
-      (id) => nodes[id]?.kind === "group",
-    );
+    const groupIds = Array.from(selectedIds).filter((id) => nodes[id]?.kind === "group");
     if (groupIds.length === 0) return;
 
     get().pushHistory();
@@ -593,16 +577,11 @@ export const useMoodboardStore = create<MoodboardState>((set, get) => ({
     });
   },
 
-  setMarquee: (r) =>
-    set((s) => ({ transient: { ...s.transient, marquee: r } })),
-  setLassoPath: (p) =>
-    set((s) => ({ transient: { ...s.transient, lassoPath: p } })),
-  setEditingText: (id) =>
-    set((s) => ({ transient: { ...s.transient, editingTextId: id } })),
-  setIsPanning: (v) =>
-    set((s) => ({ transient: { ...s.transient, isPanning: v } })),
-  setDragPreview: (p) =>
-    set((s) => ({ transient: { ...s.transient, dragPreview: p } })),
+  setMarquee: (r) => set((s) => ({ transient: { ...s.transient, marquee: r } })),
+  setLassoPath: (p) => set((s) => ({ transient: { ...s.transient, lassoPath: p } })),
+  setEditingText: (id) => set((s) => ({ transient: { ...s.transient, editingTextId: id } })),
+  setIsPanning: (v) => set((s) => ({ transient: { ...s.transient, isPanning: v } })),
+  setDragPreview: (p) => set((s) => ({ transient: { ...s.transient, dragPreview: p } })),
 
   snapshot: () => {
     const { nodes, rootOrder, selectedIds } = get();

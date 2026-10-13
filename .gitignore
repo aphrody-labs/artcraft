@@ -44,6 +44,7 @@ venv/
 /requests/
 
 # Scratch data
+.local/
 scratch/
 test_data/temp/
 untracked/

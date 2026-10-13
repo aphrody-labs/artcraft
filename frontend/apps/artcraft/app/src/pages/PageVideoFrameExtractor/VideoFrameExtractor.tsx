@@ -1,15 +1,24 @@
 import { useState, useRef, useEffect } from "react";
-import { CheckIcon, ImagesIcon, PauseIcon, PlayIcon, RotateCwIcon, SaveIcon, SkipBackIcon, SkipForwardIcon, SparklesIcon, VideoIcon, Volume2Icon, VolumeXIcon } from "lucide-react";
+import {
+  CheckIcon,
+  ImagesIcon,
+  PauseIcon,
+  PlayIcon,
+  RotateCwIcon,
+  SaveIcon,
+  SkipBackIcon,
+  SkipForwardIcon,
+  SparklesIcon,
+  VideoIcon,
+  Volume2Icon,
+  VolumeXIcon,
+} from "lucide-react";
 import { DynamicIcon } from "@storyteller/icons";
 import { Button } from "@storyteller/ui-button";
 import { GalleryItem, GalleryModal } from "@storyteller/ui-gallery-modal";
-import {
-  MediaUploadApi,
-  EIntermediateFile,
-} from "@storyteller/api";
+import { MediaUploadApi, EIntermediateFile } from "@storyteller/api";
 import { downloadFileFromUrl } from "@storyteller/tauri-api";
 import toast from "react-hot-toast";
-import { v4 as uuidv4 } from "uuid";
 import { usePromptVideoStore, RefImage } from "@storyteller/ui-promptbox";
 import { UploadEntryCard } from "../../components/media/UploadEntryCard";
 import { useTabStore } from "~/pages/Stores/TabState";
@@ -25,18 +34,14 @@ export const VideoFrameExtractor = () => {
   const [numFrames, setNumFrames] = useState(10);
   const [frameDistance, setFrameDistance] = useState(100);
   const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
-  const [selectedGalleryVideos, setSelectedGalleryVideos] = useState<string[]>(
-    [],
-  );
+  const [selectedGalleryVideos, setSelectedGalleryVideos] = useState<string[]>([]);
   const [extractedFrames, setExtractedFrames] = useState<
     { id: string; url: string; timestamp: number }[]
   >([]);
   const [isExtracting, setIsExtracting] = useState(false);
   const [savingFrames, setSavingFrames] = useState<Set<string>>(new Set());
   const [savedFrames, setSavedFrames] = useState<Set<string>>(new Set());
-  const [convertingFrames, setConvertingFrames] = useState<Set<string>>(
-    new Set(),
-  );
+  const [convertingFrames, setConvertingFrames] = useState<Set<string>>(new Set());
   const [isLoadingFromGallery, setIsLoadingFromGallery] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -339,11 +344,7 @@ export const VideoFrameExtractor = () => {
     }, 100);
   };
 
-  const handleSaveFrame = async (
-    frameId: string,
-    frameUrl: string,
-    timestamp: number,
-  ) => {
+  const handleSaveFrame = async (frameId: string, frameUrl: string, timestamp: number) => {
     if (savedFrames.has(frameId) || savingFrames.has(frameId)) {
       return;
     }
@@ -357,7 +358,7 @@ export const VideoFrameExtractor = () => {
 
       const mediaUploadApi = new MediaUploadApi();
       const uploadResponse = await mediaUploadApi.UploadImage({
-        uuid: uuidv4(),
+        uuid: crypto.randomUUID(),
         blob: blob,
         fileName: fileName,
         maybe_title: `video-frame-${timestamp}`,
@@ -391,11 +392,7 @@ export const VideoFrameExtractor = () => {
     }
   };
 
-  const handleTurnIntoVideo = async (
-    frameId: string,
-    frameUrl: string,
-    timestamp: number,
-  ) => {
+  const handleTurnIntoVideo = async (frameId: string, frameUrl: string, timestamp: number) => {
     if (convertingFrames.has(frameId)) {
       return;
     }
@@ -409,7 +406,7 @@ export const VideoFrameExtractor = () => {
 
       const mediaUploadApi = new MediaUploadApi();
       const uploadResponse = await mediaUploadApi.UploadImage({
-        uuid: uuidv4(),
+        uuid: crypto.randomUUID(),
         blob: blob,
         fileName: fileName,
         maybe_title: `video-frame-${timestamp}`,
@@ -440,9 +437,7 @@ export const VideoFrameExtractor = () => {
           next.delete(frameId);
           return next;
         });
-        toast.error(
-          uploadResponse.errorMessage || "Failed to convert to video",
-        );
+        toast.error(uploadResponse.errorMessage || "Failed to convert to video");
       }
     } catch (error) {
       setConvertingFrames((prev) => {
@@ -534,13 +529,9 @@ export const VideoFrameExtractor = () => {
                             e.stopPropagation();
                             const handleMouseMove = (moveEvent: MouseEvent) => {
                               if (!progressBarRef.current || !duration) return;
-                              const rect =
-                                progressBarRef.current.getBoundingClientRect();
+                              const rect = progressBarRef.current.getBoundingClientRect();
                               const moveX = moveEvent.clientX - rect.left;
-                              const percentage = Math.max(
-                                0,
-                                Math.min(1, moveX / rect.width),
-                              );
+                              const percentage = Math.max(0, Math.min(1, moveX / rect.width));
                               const newTime = percentage * duration;
                               setStartTime(newTime);
                               if (videoRef.current) {
@@ -549,19 +540,10 @@ export const VideoFrameExtractor = () => {
                               }
                             };
                             const handleMouseUp = () => {
-                              document.removeEventListener(
-                                "mousemove",
-                                handleMouseMove,
-                              );
-                              document.removeEventListener(
-                                "mouseup",
-                                handleMouseUp,
-                              );
+                              document.removeEventListener("mousemove", handleMouseMove);
+                              document.removeEventListener("mouseup", handleMouseUp);
                             };
-                            document.addEventListener(
-                              "mousemove",
-                              handleMouseMove,
-                            );
+                            document.addEventListener("mousemove", handleMouseMove);
                             document.addEventListener("mouseup", handleMouseUp);
                           }}
                         />
@@ -573,9 +555,7 @@ export const VideoFrameExtractor = () => {
                             className="flex h-8 w-8 items-center justify-center rounded-[3px] bg-white/10 transition-colors hover:bg-white/20"
                             title="First Frame"
                           >
-                            <SkipBackIcon
-                              
-                              className="text-sm text-white" />
+                            <SkipBackIcon className="text-sm text-white" />
                           </button>
                           <button
                             onClick={togglePlayPause}
@@ -591,9 +571,7 @@ export const VideoFrameExtractor = () => {
                             className="flex h-8 w-8 items-center justify-center rounded-[3px] bg-white/10 transition-colors hover:bg-white/20"
                             title="Last Frame"
                           >
-                            <SkipForwardIcon
-                              
-                              className="text-sm text-white" />
+                            <SkipForwardIcon className="text-sm text-white" />
                           </button>
                           <div className="mx-1 h-6 w-px bg-white/20" />
                           <button
@@ -611,9 +589,7 @@ export const VideoFrameExtractor = () => {
                             max="1"
                             step="0.01"
                             value={volume}
-                            onChange={(e) =>
-                              setVolume(parseFloat(e.target.value))
-                            }
+                            onChange={(e) => setVolume(parseFloat(e.target.value))}
                             className="w-20 accent-white"
                           />
                         </div>
@@ -662,21 +638,16 @@ export const VideoFrameExtractor = () => {
                         </div>
                         <div className="space-y-3 text-sm">
                           <div className="flex items-center justify-between border-b border-ui-divider py-2">
-                            <span className="font-medium text-base-fg/70">
-                              Duration
-                            </span>
+                            <span className="font-medium text-base-fg/70">Duration</span>
                             <span className="font-mono text-lg font-semibold tabular-nums text-base-fg">
                               {formatTime(duration)}
                             </span>
                           </div>
                           {videoRef.current && (
                             <div className="flex items-center justify-between py-2">
-                              <span className="font-medium text-base-fg/70">
-                                Resolution
-                              </span>
+                              <span className="font-medium text-base-fg/70">Resolution</span>
                               <span className="font-mono font-semibold tabular-nums text-base-fg">
-                                {videoRef.current.videoWidth} ×{" "}
-                                {videoRef.current.videoHeight}
+                                {videoRef.current.videoWidth} × {videoRef.current.videoHeight}
                               </span>
                             </div>
                           )}
@@ -688,9 +659,7 @@ export const VideoFrameExtractor = () => {
                   <div className="border border-ui-panel-border bg-ui-panel p-6">
                     <div>
                       <h3 className="mb-5 flex items-center gap-2 font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-base-fg/60">
-                        <SparklesIcon
-                          
-                          className="text-ui-accent-ink" />
+                        <SparklesIcon className="text-ui-accent-ink" />
                         Extraction Settings
                       </h3>
 
@@ -709,12 +678,7 @@ export const VideoFrameExtractor = () => {
                             max="50"
                             value={numFrames}
                             onChange={(e) =>
-                              setNumFrames(
-                                Math.max(
-                                  1,
-                                  Math.min(50, parseInt(e.target.value) || 1),
-                                ),
-                              )
+                              setNumFrames(Math.max(1, Math.min(50, parseInt(e.target.value) || 1)))
                             }
                             className="w-full rounded-[3px] border border-white/15 bg-ui-controls px-3 py-2 text-sm tabular-nums text-base-fg focus:border-white/60 focus:outline-none"
                           />
@@ -734,17 +698,14 @@ export const VideoFrameExtractor = () => {
                             max="10000"
                             value={frameDistance}
                             onChange={(e) =>
-                              setFrameDistance(
-                                Math.max(1, parseInt(e.target.value) || 1),
-                              )
+                              setFrameDistance(Math.max(1, parseInt(e.target.value) || 1))
                             }
                             className="w-full rounded-[3px] border border-white/15 bg-ui-controls px-3 py-2 text-sm tabular-nums text-base-fg focus:border-white/60 focus:outline-none"
                           />
                         </div>
 
                         <div className="text-xs leading-relaxed text-base-fg/60">
-                          Extracting multiple frames helps capture a sharp,
-                          non-blurred frame.
+                          Extracting multiple frames helps capture a sharp, non-blurred frame.
                         </div>
                       </div>
                     </div>
@@ -759,9 +720,7 @@ export const VideoFrameExtractor = () => {
                     <div>
                       <div className="mb-4 flex items-center justify-between">
                         <h3 className="flex items-center gap-2 text-sm font-semibold text-base-fg">
-                          <ImagesIcon
-                            
-                            className="text-ui-accent-ink" />
+                          <ImagesIcon className="text-ui-accent-ink" />
                           Extracted Frames
                         </h3>
                         <div className="border border-white/20 px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase leading-none tracking-[0.12em] text-base-fg/70">
@@ -803,16 +762,9 @@ export const VideoFrameExtractor = () => {
                                   }
                                   loading={savingFrames.has(frame.id)}
                                   onClick={() =>
-                                    handleSaveFrame(
-                                      frame.id,
-                                      frame.url,
-                                      frame.timestamp,
-                                    )
+                                    handleSaveFrame(frame.id, frame.url, frame.timestamp)
                                   }
-                                  disabled={
-                                    savingFrames.has(frame.id) ||
-                                    savedFrames.has(frame.id)
-                                  }
+                                  disabled={savingFrames.has(frame.id) || savedFrames.has(frame.id)}
                                   className="flex-1 px-3 py-1.5 text-xs font-semibold"
                                 >
                                   {savingFrames.has(frame.id)
@@ -823,18 +775,10 @@ export const VideoFrameExtractor = () => {
                                 </Button>
                                 <Button
                                   variant="primary"
-                                  icon={
-                                    convertingFrames.has(frame.id)
-                                      ? undefined
-                                      : VideoIcon
-                                  }
+                                  icon={convertingFrames.has(frame.id) ? undefined : VideoIcon}
                                   loading={convertingFrames.has(frame.id)}
                                   onClick={() =>
-                                    handleTurnIntoVideo(
-                                      frame.id,
-                                      frame.url,
-                                      frame.timestamp,
-                                    )
+                                    handleTurnIntoVideo(frame.id, frame.url, frame.timestamp)
                                   }
                                   disabled={convertingFrames.has(frame.id)}
                                   className="flex-1 px-3 py-1.5 text-xs font-semibold"

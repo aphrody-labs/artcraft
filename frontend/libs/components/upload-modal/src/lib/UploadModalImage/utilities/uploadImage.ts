@@ -1,10 +1,5 @@
-import { v4 as uuidv4 } from "uuid";
 import { MediaUploadApi } from "@storyteller/api";
-import {
-  UploaderState,
-  UploaderStates,
-  getFileName,
-} from "../../Types";
+import { UploaderState, UploaderStates, getFileName } from "../../Types";
 
 export const uploadImage = async ({
   title,
@@ -22,7 +17,7 @@ export const uploadImage = async ({
   const assetResponse = await mediaUploadApi.UploadImage({
     blob: assetFile,
     fileName: getFileName(assetFile),
-    uuid: uuidv4(),
+    uuid: crypto.randomUUID(),
     maybe_title: title,
   });
 

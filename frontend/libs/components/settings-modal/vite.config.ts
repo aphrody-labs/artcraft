@@ -2,17 +2,17 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import dts from "vite-plugin-dts";
-import * as path from "path";
+import * as path from "node:path";
 import { isExternal } from "../../shared-vite-config";
 
 export default defineConfig(() => ({
-  root: __dirname,
+  root: import.meta.dir,
   cacheDir: "../../../node_modules/.vite/libs/components/settings-modal",
   plugins: [
     react(),
     dts({
       entryRoot: "src",
-      tsconfigPath: path.join(__dirname, "tsconfig.lib.json"),
+      tsconfigPath: path.join(import.meta.dir, "tsconfig.lib.json"),
     }),
   ],
   // Uncomment this if you are using workers.

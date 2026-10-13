@@ -23,13 +23,13 @@ export class BatchCommand extends Command {
     return latestSelectionResult;
   }
 
-  undo(): void {
+  override undo(): void {
     for (const command of [...this.commands].reverse()) {
       command.undo();
     }
   }
 
-  redo(): CommandResult | undefined {
+  override redo(): CommandResult | undefined {
     let latestSelectionResult: CommandResult | undefined;
 
     for (const command of this.commands) {

@@ -1,18 +1,20 @@
+import { vi, beforeEach, describe, it, expect, afterEach } from "bun:test";
+import { stubGlobal, restoreGlobals } from "../../../../../../../tools/testing/globals";
 import * as THREE from "three";
 import { loadPreviewOnCanvas } from "./loadPreviewOnCanvas";
 
-const { renderers, pendingGltfLoads } = vi.hoisted(() => ({
+const { renderers, pendingGltfLoads } = (() => ({
   renderers: [] as Array<{
     dispose: ReturnType<typeof vi.fn>;
     forceContextLoss: ReturnType<typeof vi.fn>;
     setAnimationLoop: ReturnType<typeof vi.fn>;
   }>,
   pendingGltfLoads: [] as Array<(gltf: { scene: unknown }) => void>,
-}));
+}))();
 
 // jsdom has no WebGL; only the lifecycle calls matter here.
-vi.mock("three", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("three")>();
+const actualThree = { ...THREE };
+vi.mock("three", () => {
   class WebGLRenderer {
     dispose = vi.fn();
     forceContextLoss = vi.fn();
@@ -23,7 +25,7 @@ vi.mock("three", async (importOriginal) => {
     setSize() {}
     render() {}
   }
-  return { ...actual, WebGLRenderer };
+  return { ...actualThree, WebGLRenderer };
 });
 
 // Loads stay pending until a test resolves them, to model a load that
@@ -49,7 +51,7 @@ describe("loadPreviewOnCanvas dispose", () => {
   beforeEach(() => {
     renderers.length = 0;
     pendingGltfLoads.length = 0;
-    vi.stubGlobal("URL", {
+    stubGlobal("URL", {
       ...URL,
       createObjectURL: vi.fn(() => "blob:preview"),
       revokeObjectURL: vi.fn(),
@@ -122,3 +124,5 @@ function attachedCanvas(): HTMLCanvasElement {
   document.body.appendChild(canvas);
   return canvas;
 }
+
+afterEach(restoreGlobals);

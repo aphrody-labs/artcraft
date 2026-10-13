@@ -1,4 +1,4 @@
-import { ModelCreator } from "src/index.js";
+import { ModelCreator } from "./metadata/ModelCreator.js";
 import { Model, ModelKind } from "./Model.js";
 import { ModelCategory } from "../legacy/ModelConfig.js";
 import { ModelTag } from "./metadata/ModelTag.js";
@@ -9,7 +9,6 @@ export class SplatModel extends Model {
   // Since Vite minification and class name mangling can break instanceof checks,
   // we have a type discriminator property to check against.
   override readonly kind: ModelKind = "gaussian_model";
-
 
   constructor(args: {
     id: string;

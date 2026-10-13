@@ -1,3 +1,5 @@
+import { vi, describe, it, expect, afterEach } from "bun:test";
+import { stubGlobal, restoreGlobals } from "../../../../../../../tools/testing/globals";
 import { ViewportController } from "./ViewportController";
 
 describe("ViewportController", () => {
@@ -24,7 +26,7 @@ describe("ViewportController", () => {
 // jsdom has no ResizeObserver; record each one the controller creates.
 function stubResizeObserver() {
   const observers: Array<{ disconnect: ReturnType<typeof vi.fn> }> = [];
-  vi.stubGlobal(
+  stubGlobal(
     "ResizeObserver",
     class {
       disconnect = vi.fn();
@@ -36,3 +38,5 @@ function stubResizeObserver() {
   );
   return observers;
 }
+
+afterEach(restoreGlobals);

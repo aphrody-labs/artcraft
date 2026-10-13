@@ -6,14 +6,9 @@ import type {
 } from "@storyteller/ui-pagescene";
 import { ApiManager, ApiResponse } from "./ApiManager";
 import { authentication } from "~/signals";
-import type { Property } from "csstype";
 import { Visibility } from "~/enums";
 
-import {
-  FilterEngineCategories,
-  FilterMediaClasses,
-  FilterMediaType,
-} from "~/enums";
+import { FilterEngineCategories, FilterMediaClasses, FilterMediaType } from "~/enums";
 
 interface ListMediaQuery {
   sort_ascending?: boolean;
@@ -42,7 +37,6 @@ interface SearchFeaturedMediaQuery {
 }
 
 export class MediaFilesApi extends ApiManager {
-
   public async ListMediaFilesByTokens({
     mediaTokens,
   }: {
@@ -95,9 +89,7 @@ export class MediaFilesApi extends ApiManager {
       filter_media_classes: query.filter_media_classes
         ? query.filter_media_classes.join(",")
         : undefined,
-      filter_media_type: query.filter_media_type
-        ? query.filter_media_type.join(",")
-        : undefined,
+      filter_media_type: query.filter_media_type ? query.filter_media_type.join(",") : undefined,
       filter_engine_categories: query.filter_engine_categories
         ? query.filter_engine_categories.join(",")
         : undefined,
@@ -129,9 +121,7 @@ export class MediaFilesApi extends ApiManager {
       filter_media_classes: query.filter_media_classes
         ? query.filter_media_classes.join(",")
         : undefined,
-      filter_media_type: query.filter_media_type
-        ? query.filter_media_type.join(",")
-        : undefined,
+      filter_media_type: query.filter_media_type ? query.filter_media_type.join(",") : undefined,
       filter_engine_categories: query.filter_engine_categories
         ? query.filter_engine_categories.join(",")
         : undefined,
@@ -165,9 +155,7 @@ export class MediaFilesApi extends ApiManager {
       filter_media_classes: query.filter_media_classes
         ? query.filter_media_classes.join(",")
         : undefined,
-      filter_media_type: query.filter_media_type
-        ? query.filter_media_type.join(",")
-        : undefined,
+      filter_media_type: query.filter_media_type ? query.filter_media_type.join(",") : undefined,
       filter_engine_categories: query.filter_engine_categories
         ? query.filter_engine_categories.join(",")
         : undefined,
@@ -199,9 +187,7 @@ export class MediaFilesApi extends ApiManager {
       filter_media_classes: query.filter_media_classes
         ? query.filter_media_classes.join(",")
         : undefined,
-      filter_media_type: query.filter_media_type
-        ? query.filter_media_type.join(",")
-        : undefined,
+      filter_media_type: query.filter_media_type ? query.filter_media_type.join(",") : undefined,
       filter_engine_categories: query.filter_engine_categories
         ? query.filter_engine_categories.join(",")
         : undefined,
@@ -231,9 +217,7 @@ export class MediaFilesApi extends ApiManager {
       filter_media_classes: query.filter_media_classes
         ? query.filter_media_classes.join(",")
         : undefined,
-      filter_media_type: query.filter_media_type
-        ? query.filter_media_type.join(",")
-        : undefined,
+      filter_media_type: query.filter_media_type ? query.filter_media_type.join(",") : undefined,
       filter_engine_categories: query.filter_engine_categories
         ? query.filter_engine_categories.join(",")
         : undefined,
@@ -395,5 +379,4 @@ export class MediaFilesApi extends ApiManager {
         };
       });
   }
-
 }

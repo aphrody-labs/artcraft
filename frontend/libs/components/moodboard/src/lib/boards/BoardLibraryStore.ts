@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { v4 as uuidv4 } from "uuid";
 import {
   Board,
   BoardImageItem,
@@ -89,11 +88,7 @@ interface BoardLibraryState extends PersistedLibrary {
   deleteSection: (boardId: string, sectionId: string) => void;
   toggleSectionCollapsed: (boardId: string, sectionId: string) => void;
   // Move items into a section (or back to the ungrouped flow with null).
-  assignItemsToSection: (
-    boardId: string,
-    ids: string[],
-    sectionId: string | null,
-  ) => void;
+  assignItemsToSection: (boardId: string, ids: string[], sectionId: string | null) => void;
 
   // View + filters
   setViewMode: (mode: ViewMode) => void;
@@ -151,7 +146,7 @@ export const useBoardLibraryStore = create<BoardLibraryState>()(
       },
 
       createBoard: (name) => {
-        const id = uuidv4();
+        const id = crypto.randomUUID();
         const order = nextSeq();
         const board: Board = {
           id,
@@ -190,8 +185,7 @@ export const useBoardLibraryStore = create<BoardLibraryState>()(
           const boards = { ...s.boards };
           delete boards[id];
           const boardOrder = s.boardOrder.filter((b) => b !== id);
-          const activeBoardId =
-            s.activeBoardId === id ? boardOrder[0] ?? null : s.activeBoardId;
+          const activeBoardId = s.activeBoardId === id ? (boardOrder[0] ?? null) : s.activeBoardId;
           return { boards, boardOrder, activeBoardId };
         });
       },
@@ -235,17 +229,8 @@ export const useBoardLibraryStore = create<BoardLibraryState>()(
         });
       },
 
-      upsertRemoteBoard: ({
-        token,
-        name,
-        ownerId,
-        itemOrder,
-        items,
-        sections,
-      }) => {
-        const existing = Object.values(get().boards).find(
-          (b) => b.remoteToken === token,
-        );
+      upsertRemoteBoard: ({ token, name, ownerId, itemOrder, items, sections }) => {
+        const existing = Object.values(get().boards).find((b) => b.remoteToken === token);
         if (existing) {
           set((s) => ({
             boards: {
@@ -265,7 +250,7 @@ export const useBoardLibraryStore = create<BoardLibraryState>()(
           return existing.id;
         }
 
-        const id = uuidv4();
+        const id = crypto.randomUUID();
         const order = nextSeq();
         const board: Board = {
           id,
@@ -403,7 +388,7 @@ export const useBoardLibraryStore = create<BoardLibraryState>()(
       },
 
       createSection: (boardId, name) => {
-        const id = uuidv4();
+        const id = crypto.randomUUID();
         set((s) => {
           const board = s.boards[boardId];
           if (!board) return s;
@@ -475,9 +460,7 @@ export const useBoardLibraryStore = create<BoardLibraryState>()(
               [boardId]: {
                 ...board,
                 sections: board.sections.map((sec) =>
-                  sec.id === sectionId
-                    ? { ...sec, collapsed: !sec.collapsed }
-                    : sec,
+                  sec.id === sectionId ? { ...sec, collapsed: !sec.collapsed } : sec,
                 ),
               },
             },
@@ -515,8 +498,7 @@ export const useBoardLibraryStore = create<BoardLibraryState>()(
             : [...s.activeTagFilters, tag],
         })),
       setRatingFilter: (min) => set({ ratingFilter: Math.max(0, Math.min(5, min)) }),
-      clearFilters: () =>
-        set({ searchQuery: "", activeTagFilters: [], ratingFilter: 0 }),
+      clearFilters: () => set({ searchQuery: "", activeTagFilters: [], ratingFilter: 0 }),
 
       setSelection: (ids) => set({ selectedItemIds: new Set(ids) }),
       // Every click accumulates: a plain click adds the item to the current
@@ -592,9 +574,7 @@ const revokeBlobSrc = (item: BoardItem | undefined): void => {
 
 // Persistence view of the boards with blob-backed (ephemeral) items removed and
 // their order entries pruned. Non-blob image/video (library picks) are kept.
-const stripEphemeralItems = (
-  boards: Record<string, Board>,
-): Record<string, Board> => {
+const stripEphemeralItems = (boards: Record<string, Board>): Record<string, Board> => {
   const out: Record<string, Board> = {};
   for (const [boardId, board] of Object.entries(boards)) {
     const items: Record<string, BoardItem> = {};
@@ -624,7 +604,7 @@ const addItemToBoard = (
     rating: number;
   }) => BoardItem,
 ): string => {
-  const id = uuidv4();
+  const id = crypto.randomUUID();
   const item = build({
     id,
     sectionId: null,

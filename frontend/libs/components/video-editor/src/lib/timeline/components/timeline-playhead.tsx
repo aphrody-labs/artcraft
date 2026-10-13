@@ -60,12 +60,10 @@ export function TimelinePlayhead({
   });
   const { scrollLeft } = useScrollPosition({ scrollRef: tracksScrollRef });
 
-  const timelineContainerHeight =
-    timelineHeight || tracksHeight || 400;
+  const timelineContainerHeight = timelineHeight || tracksHeight || 400;
   const totalHeight = Math.max(
     0,
-    timelineContainerHeight -
-      (hasHorizontalScrollbar ? TIMELINE_SCROLLBAR_SIZE_PX - 5 : 0),
+    timelineContainerHeight - (hasHorizontalScrollbar ? TIMELINE_SCROLLBAR_SIZE_PX - 5 : 0),
   );
 
   const currentTime = editor.playback.getCurrentTime();
@@ -73,20 +71,17 @@ export function TimelinePlayhead({
     time: currentTime,
     zoomLevel,
   });
-  const leftPosition =
-    getCenteredLineLeft({ centerPixel: centerPosition }) - scrollLeft;
+  const leftPosition = getCenteredLineLeft({ centerPixel: centerPosition }) - scrollLeft;
 
-  const handlePlayheadKeyDown = (
-    event: React.KeyboardEvent<HTMLDivElement>,
-  ) => {
+  const handlePlayheadKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
 
     event.preventDefault();
-    const fps = editor.project.getActive().settings.fps;
+    const project = editor.project.getActive();
+    if (!project) return;
+    const fps = project.settings.fps;
     const ticksPerFrame = mediaTime({
-      ticks: Math.round(
-        (TICKS_PER_SECOND * fps.denominator) / fps.numerator,
-      ),
+      ticks: Math.round((TICKS_PER_SECOND * fps.denominator) / fps.numerator),
     });
     const direction = event.key === "ArrowRight" ? 1 : -1;
     const now = editor.playback.getCurrentTime();

@@ -4,12 +4,7 @@ import { Command, type CommandResult } from "../../../base-command";
 import { updateElementInSceneTracks } from "../../../../timeline/track-element-update";
 import type { AnimationPath } from "../../../../animation/types";
 import type { SceneTracks } from "../../../../timeline/types";
-import {
-  type MediaTime,
-  maxMediaTime,
-  minMediaTime,
-  ZERO_MEDIA_TIME,
-} from "../../../../wasm";
+import { type MediaTime, maxMediaTime, minMediaTime, ZERO_MEDIA_TIME } from "../../../../wasm";
 import { resolveAnimationTarget } from "../../../../timeline/animation-targets";
 
 export class RetimeKeyframeCommand extends Command {
@@ -74,7 +69,7 @@ export class RetimeKeyframeCommand extends Command {
     return undefined;
   }
 
-  undo(): void {
+  override undo(): void {
     if (!this.savedState) {
       return;
     }

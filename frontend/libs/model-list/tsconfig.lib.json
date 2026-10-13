@@ -9,14 +9,9 @@
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "forceConsistentCasingInFileNames": true,
-    "types": [
-      "node",
-      "vite/client"
-    ]
+    "types": ["@aphrody/bun-types", "node", "vite/client"]
   },
-  "include": [
-    "src/**/*.ts"
-  ],
+  "include": ["src/**/*.ts"],
   "references": [
     {
       "path": "../tauri-utils/tsconfig.lib.json"

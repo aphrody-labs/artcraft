@@ -5,9 +5,7 @@ import { usePreviewViewport } from "./preview-viewport";
 import { useEditor } from "../../editor/use-editor";
 import type { TextElement } from "../../timeline/types";
 import { DEFAULTS } from "../../timeline/defaults";
-import {
-  getElementLocalTime,
-} from "../../animation";
+import { getElementLocalTime } from "../../animation";
 import { resolveTransformAtTime } from "../../rendering/animation-values";
 import { buildTransformFromParams } from "../../rendering";
 import { resolveTextLayout } from "../../text/primitives";
@@ -63,7 +61,7 @@ export function TextEditOverlay({
     [onCommit],
   );
 
-  const canvasSize = editor.project.getActive().settings.canvasSize;
+  const canvasSize = editor.project.getActive()?.settings.canvasSize;
 
   if (!canvasSize) return null;
 
@@ -96,8 +94,7 @@ export function TextEditOverlay({
   const lineHeightPx = resolvedTextLayout.lineHeightPx;
 
   const bg = buildTextBackgroundFromElement({ element });
-  const shouldShowBackground =
-    bg.enabled && bg.color && bg.color !== "transparent";
+  const shouldShowBackground = bg.enabled && bg.color && bg.color !== "transparent";
   const fontSizeRatio = resolvedTextLayout.fontSizeRatio;
   const canvasPaddingX = shouldShowBackground
     ? (bg.paddingX ?? DEFAULTS.text.background.paddingX) * fontSizeRatio
@@ -133,16 +130,11 @@ export function TextEditOverlay({
           letterSpacing: `${canvasLetterSpacing}px`,
           lineHeight,
           color: "transparent",
-          caretColor:
-            typeof element.params.color === "string"
-              ? element.params.color
-              : "#ffffff",
+          caretColor: typeof element.params.color === "string" ? element.params.color : "#ffffff",
           backgroundColor: shouldShowBackground ? bg.color : "transparent",
           minHeight: lineHeightPx,
           textDecoration: textParams.textDecoration ?? "none",
-          padding: shouldShowBackground
-            ? `${canvasPaddingY}px ${canvasPaddingX}px`
-            : 0,
+          padding: shouldShowBackground ? `${canvasPaddingY}px ${canvasPaddingX}px` : 0,
           minWidth: 1,
         }}
         onInput={handleInput}

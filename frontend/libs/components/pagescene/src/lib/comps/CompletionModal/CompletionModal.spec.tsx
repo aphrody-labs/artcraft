@@ -1,11 +1,12 @@
+import { stubGlobal, restoreGlobals } from "../../../../../../../tools/testing/globals";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, expect, it, vi } from "bun:test";
 import { CompletionModal } from "./CompletionModal";
 import { EngineContext } from "../../contexts/EngineContext";
 import { usePageSceneStore, type ProducedArtifact } from "../../PageSceneStore";
 import type Editor from "../../engine/editor";
 
-const mocks = vi.hoisted(() => ({ revoke: vi.fn() }));
+const mocks = (() => ({ revoke: vi.fn() }))();
 
 vi.mock("../../contexts/EngineContext", async () => {
   const { createContext } = await import("react");
@@ -13,7 +14,7 @@ vi.mock("../../contexts/EngineContext", async () => {
 });
 
 beforeEach(() => {
-  vi.stubGlobal("URL", { revokeObjectURL: mocks.revoke });
+  stubGlobal("URL", { revokeObjectURL: mocks.revoke });
   vi.spyOn(console, "error").mockImplementation(() => {});
 });
 
@@ -21,7 +22,7 @@ afterEach(() => {
   cleanup();
   usePageSceneStore.setState({ producedArtifact: null });
   mocks.revoke.mockClear();
-  vi.unstubAllGlobals();
+  restoreGlobals();
   vi.restoreAllMocks();
 });
 
@@ -29,19 +30,25 @@ it("uploads only on click and retains the video until its lightbox is ready", as
   const artifact = setArtifact("video");
   const uploadMedia = vi.fn().mockResolvedValue("mf_video");
   let finishPreview!: () => void;
-  const openMediaLightbox = vi.fn().mockReturnValue(new Promise<void>((resolve) => {
-    finishPreview = resolve;
-  }));
+  const openMediaLightbox = vi.fn().mockReturnValue(
+    new Promise<void>((resolve) => {
+      finishPreview = resolve;
+    }),
+  );
   renderModal({ uploadMedia, openMediaLightbox });
   expect(uploadMedia).not.toHaveBeenCalled();
   fireEvent.click(screen.getByRole("button", { name: "Upload & continue" }));
   await waitFor(() => expect(openMediaLightbox).toHaveBeenCalledWith("mf_video", "video"));
   expect(uploadMedia).toHaveBeenCalledWith({
-    kind: "video", blob: artifact.blob, fileName: artifact.fileName,
+    kind: "video",
+    blob: artifact.blob,
+    fileName: artifact.fileName,
   });
   expect(usePageSceneStore.getState().producedArtifact).toBe(artifact);
   expect(mocks.revoke).not.toHaveBeenCalled();
-  expect((screen.getByRole("button", { name: "Discard" }) as HTMLButtonElement).disabled).toBe(true);
+  expect((screen.getByRole("button", { name: "Discard" }) as HTMLButtonElement).disabled).toBe(
+    true,
+  );
   await act(async () => finishPreview());
   expect(usePageSceneStore.getState().producedArtifact).toBeNull();
   expect(mocks.revoke).toHaveBeenCalledWith(artifact.objectUrl);
@@ -58,7 +65,8 @@ it("shows missing upload support instead of silently ignoring the click", async 
 
 it("keeps a failed upload available and retries it", async () => {
   const artifact = setArtifact("video");
-  const uploadMedia = vi.fn()
+  const uploadMedia = vi
+    .fn()
     .mockRejectedValueOnce(new Error("Connection lost"))
     .mockResolvedValueOnce("mf_video");
   const openMediaLightbox = vi.fn();
@@ -75,7 +83,8 @@ it("keeps a failed upload available and retries it", async () => {
 it("retries preview failures without uploading the recording twice", async () => {
   setArtifact("video");
   const uploadMedia = vi.fn().mockResolvedValue("mf_video");
-  const openMediaLightbox = vi.fn()
+  const openMediaLightbox = vi
+    .fn()
     .mockRejectedValueOnce(new Error("Preview unavailable"))
     .mockResolvedValueOnce(undefined);
   renderModal({ uploadMedia, openMediaLightbox });
@@ -94,7 +103,9 @@ it("still uploads captured images automatically", async () => {
   renderModal({ uploadMedia, openMediaLightbox });
   await waitFor(() => expect(usePageSceneStore.getState().producedArtifact).toBeNull());
   expect(uploadMedia).toHaveBeenCalledWith({
-    kind: "image", blob: artifact.blob, fileName: artifact.fileName,
+    kind: "image",
+    blob: artifact.blob,
+    fileName: artifact.fileName,
   });
   expect(openMediaLightbox).toHaveBeenCalledWith("mf_image", "image");
 });

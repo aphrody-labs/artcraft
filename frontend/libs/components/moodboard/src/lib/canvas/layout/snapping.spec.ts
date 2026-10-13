@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { SnapBox, computeSnap } from "./snapping";
 
 const box = (x: number, y: number, w = 100, h = 100): SnapBox => ({

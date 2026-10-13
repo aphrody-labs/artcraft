@@ -1,6 +1,7 @@
+import { stubGlobal, restoreGlobals } from "../../../../../tools/testing/globals";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, expect, it, vi } from "bun:test";
 import { GenerationProvider } from "@storyteller/api-enums";
 import { buildImageModelsFromListing } from "@storyteller/model-list";
 import { useModelPickerStyleStore } from "@storyteller/ui-popover";
@@ -9,26 +10,32 @@ import { useClassyModelSelectorStore } from "./classy-model-selector-store";
 import { ModelPage } from "./model-pages";
 
 const PAGE = ModelPage.TextToImage;
-const MODELS = buildImageModelsFromListing([], [
-  { model: "nano_banana_pro" },
-  { model: "gpt_image_1p5" },
-  { model: "flux_dev" },
-  { model: "seedream_4" },
-  { model: "recraft_3" },
-  { model: "imagen_4" },
-  { model: "midjourney_7" },
-  { model: "midjourney_8" },
-]);
+const MODELS = buildImageModelsFromListing(
+  [],
+  [
+    { model: "nano_banana_pro" },
+    { model: "gpt_image_1p5" },
+    { model: "flux_dev" },
+    { model: "seedream_4" },
+    { model: "recraft_3" },
+    { model: "imagen_4" },
+    { model: "midjourney_7" },
+    { model: "midjourney_8" },
+  ],
+);
 const INITIAL_MODEL = MODELS.find((model) => model.id === "nano_banana_pro")!;
 const MIDJOURNEY_MODEL = MODELS.find((model) => model.id === "midjourney_8")!;
 const ITEMS = MODELS.map((model) => ({ label: model.selectorName, model }));
 
 beforeEach(() => {
-  vi.stubGlobal("ResizeObserver", class {
-    observe() {}
-    disconnect() {}
-    unobserve() {}
-  });
+  stubGlobal(
+    "ResizeObserver",
+    class {
+      observe() {}
+      disconnect() {}
+      unobserve() {}
+    },
+  );
   // jsdom has no layout; give the menu a visible rect so its viewport clamp
   // and Headless UI visibility checks behave as they do in the app.
   vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockReturnValue(
@@ -43,7 +50,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
-  vi.unstubAllGlobals();
+  restoreGlobals();
   useClassyModelSelectorStore.setState({ selectedModels: {}, selectedProviders: {} });
   useModelPickerStyleStore.getState().setStyle("grouped");
 });
@@ -56,7 +63,9 @@ it.each([
   "selects both Midjourney v8 and $label from the $style picker",
   async ({ style, provider, label }) => {
     if (provider === GenerationProvider.Artcraft) {
-      useClassyModelSelectorStore.getState().setSelectedProvider(PAGE, MIDJOURNEY_MODEL.id, GenerationProvider.Midjourney);
+      useClassyModelSelectorStore
+        .getState()
+        .setSelectedProvider(PAGE, MIDJOURNEY_MODEL.id, GenerationProvider.Midjourney);
     }
     const user = await openProviderPicker(style);
 
@@ -65,10 +74,13 @@ it.each([
     await user.click(screen.getByRole("button", { name: new RegExp(label) }));
 
     expect(useClassyModelSelectorStore.getState().selectedModels[PAGE]).toBe(MIDJOURNEY_MODEL);
-    expect(useClassyModelSelectorStore.getState().selectedProviders[PAGE]?.[MIDJOURNEY_MODEL.id])
-      .toBe(provider);
+    expect(
+      useClassyModelSelectorStore.getState().selectedProviders[PAGE]?.[MIDJOURNEY_MODEL.id],
+    ).toBe(provider);
     await waitFor(() => expect(screen.queryByText("Select Model")).toBeNull());
-    expect(screen.getByRole("button", { name: new RegExp(MIDJOURNEY_MODEL.selectorName) })).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: new RegExp(MIDJOURNEY_MODEL.selectorName) }),
+    ).toBeTruthy();
   },
 );
 
@@ -80,8 +92,9 @@ it("still dismisses the grouped picker on an outside press without changing sele
   await waitFor(() => expect(screen.queryByText("Select Model")).toBeNull());
   expect(screen.queryByText("Select Provider")).toBeNull();
   expect(useClassyModelSelectorStore.getState().selectedModels[PAGE]).toBe(INITIAL_MODEL);
-  expect(useClassyModelSelectorStore.getState().selectedProviders[PAGE]?.[MIDJOURNEY_MODEL.id])
-    .toBe(GenerationProvider.Artcraft);
+  expect(
+    useClassyModelSelectorStore.getState().selectedProviders[PAGE]?.[MIDJOURNEY_MODEL.id],
+  ).toBe(GenerationProvider.Artcraft);
 });
 
 async function openProviderPicker(style: "grouped" | "flat") {

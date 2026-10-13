@@ -1,11 +1,8 @@
-import { afterEach, beforeEach, describe, expect, test } from "vitest";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 
 import { EditorCore } from "../index";
 import type { VideoEditorAdapters } from "../../adapters";
-import type {
-  EditorProject,
-  ProjectMeta,
-} from "../../adapters/types";
+import type { EditorProject, ProjectMeta } from "../../adapters/types";
 import { consoleToast } from "../../adapters/default/console-toast";
 import { anonymousAuthUser } from "../../adapters/default/anonymous-auth-user";
 import { downloadExportSink } from "../../adapters/default/download-export-sink";
@@ -192,9 +189,7 @@ describe("EditorCore smoke", () => {
         selectedElements: [{ trackId: "t1", elementId: "e1" }],
       },
     });
-    expect(editor.selection.getSelectedElements()).toEqual([
-      { trackId: "t1", elementId: "e1" },
-    ]);
+    expect(editor.selection.getSelectedElements()).toEqual([{ trackId: "t1", elementId: "e1" }]);
 
     editor.selection.restoreSnapshot({ snapshot });
     expect(editor.selection.getSelectedElements()).toEqual([]);

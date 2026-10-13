@@ -15,7 +15,7 @@ interface Props {
 export const UploadFilesMedia = ({
   fileTypes,
   onClose,
-  title,
+  title: _title,
   onUploadProgress,
 }: Props) => {
   const [uploadTitle, setUploadTitle] = useState<{
@@ -66,10 +66,10 @@ export const UploadFilesMedia = ({
           className={uploadTitle.error ? "mb-3" : ""}
         />
         <FileUploader
-          title={title}
           fileTypes={fileTypes}
-          file={assetFile.value}
-          setFile={(file: File | null) => {
+          files={assetFile.value ? [assetFile.value] : []}
+          handleChange={(files: File[]) => {
+            const file = files[0] ?? null;
             if (file !== null) {
               setAssetFile({
                 value: file,
@@ -80,15 +80,11 @@ export const UploadFilesMedia = ({
             }
           }}
         />
-        {assetFile.error && (
-          <h6 className="z-10 text-red">{assetFile.error}</h6>
-        )}
+        {assetFile.error && <h6 className="z-10 text-red">{assetFile.error}</h6>}
 
         <div className="relative m-auto aspect-square w-full overflow-hidden border border-white/15 bg-ui-controls">
           {!assetFile.value && (
-            <h6 className="absolute left-0 top-1/2 -mt-5 w-full text-center">
-              File Preview
-            </h6>
+            <h6 className="absolute left-0 top-1/2 -mt-5 w-full text-center">File Preview</h6>
           )}
           {assetFile.value &&
             (assetFile.value.type === "video/mp4" ? (

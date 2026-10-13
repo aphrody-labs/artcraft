@@ -1,6 +1,4 @@
-import { GetBuildEnvironment } from "~/BuildEnvironment";
 import environmentVariables from "../EnvironmentVariables";
-import { Configs } from "~/configs";
 import { FetchProxy as fetch } from "@storyteller/tauri-utils";
 import { StorytellerApiHostStore } from "@storyteller/api";
 
@@ -17,12 +15,9 @@ export class ApiManager {
   ApiTargets: Record<string, string> = {};
 
   constructor() {
-    const environmentType = GetBuildEnvironment().getBuildEnvironmentType();
-    const configs = new Configs(environmentType);
-
     // TODO(bt,2025-07-06): Not sure that any of this is used anymore.
     // If so, try to use Configs, StorytellerApiHostStore, or another configuration source.
-    
+
     // look at the .env file
     this.ApiTargets = {
       GoggleApi: environmentVariables.values.GOOGLE_API as string,
@@ -167,13 +162,8 @@ export class ApiManager {
       formData.append("file", blob);
     }
 
-    console.log(`HELLO${formData}`);
     return this.fetchMultipartFormData<T>(endpoint, {
       method: "POST",
-      headers: {
-        Accept: "application/json",
-      },
-      credentials: "include",
       body: formData,
     });
   }
@@ -200,9 +190,7 @@ export class ApiManager {
     );
   }
 
-  protected parseBodyValues<T extends object, B extends object>(
-    params: NonNullableObject<T>,
-  ): B {
+  protected parseBodyValues<T extends object, B extends object>(params: NonNullableObject<T>): B {
     return Object.entries(params).reduce((allParams, [key, value]) => {
       if (!value) {
         return allParams;

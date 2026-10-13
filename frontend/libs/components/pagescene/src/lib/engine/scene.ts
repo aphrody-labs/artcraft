@@ -13,10 +13,7 @@ import type { Camera } from "@storyteller/common";
 import toast from "react-hot-toast";
 import { SplatMesh } from "@sparkjsdev/spark";
 import { ensureInternalBbox } from "./internalBbox";
-import {
-  collectObjectTextures,
-  disposeObject3D,
-} from "@storyteller/ui-viewer-3d";
+import { collectObjectTextures, disposeObject3D } from "@storyteller/ui-viewer-3d";
 
 // Capabilities Scene needs from outside its own state. Editor wires
 // these in inline at construction (Phase 2 idiom — same shape as
@@ -30,10 +27,7 @@ export type SceneDeps = {
   // Adapter-supplied binary fetch. Optional `init.signal` lets the
   // scene loader cancel in-flight downloads when its load is
   // superseded.
-  fetchAsset: (
-    url: string,
-    init?: { signal?: AbortSignal },
-  ) => Promise<Response>;
+  fetchAsset: (url: string, init?: { signal?: AbortSignal }) => Promise<Response>;
   getMediaUrlByToken: (token: string) => Promise<string>;
   // Optional batch resolver — when provided, the proxy scene loader
   // warms a URL cache with one roundtrip instead of N. When absent,
@@ -71,7 +65,7 @@ class Scene {
   placeholder_manager: LoadingPlaceHolderManager | undefined;
 
   updateSurfaceIdAttributeToMesh: Function;
-  helper: MMDAnimationHelper;
+  helper: MMDAnimationHelper | undefined;
   ambientLight: THREE.AmbientLight | undefined;
   hemisphereLight: THREE.HemisphereLight | undefined;
   directional_light: THREE.DirectionalLight | undefined;
@@ -91,7 +85,6 @@ class Scene {
   ) {
     this.version = version;
     this.name = name;
-    this.gridHelper;
     this.scene = new THREE.Scene();
     this.hot_items = [];
 
@@ -162,11 +155,10 @@ class Scene {
   disposeObject(root: THREE.Object3D) {
     const inTree = new Set<THREE.Object3D>();
     root.traverse((child) => inTree.add(child));
-    this.shader_objects = this.shader_objects.filter(
-      (water) => !inTree.has(water),
-    );
-    for (const mesh of [...(this.helper?.meshes ?? [])]) {
-      if (inTree.has(mesh)) this.helper.remove(mesh);
+    this.shader_objects = this.shader_objects.filter((water) => !inTree.has(water));
+    // Removing an animation mutates the owner's collection; traverse a snapshot.
+    for (const mesh of this.helper?.meshes.slice() ?? []) {
+      if (inTree.has(mesh)) this.helper?.remove(mesh);
     }
 
     const videos = new Set<HTMLVideoElement>();
@@ -174,9 +166,7 @@ class Scene {
       if (texture instanceof THREE.VideoTexture) videos.add(texture.image);
     }
     for (const video of videos) stopVideo(video);
-    this.video_planes = this.video_planes.filter(
-      (video) => !videos.has(video),
-    );
+    this.video_planes = this.video_planes.filter((video) => !videos.has(video));
 
     disposeObject3D(root);
   }
@@ -196,10 +186,7 @@ class Scene {
     }
   }
 
-  async instantiate(
-    name: string,
-    pos: THREE.Vector3 = new THREE.Vector3(0, 0, 0),
-  ) {
+  async instantiate(name: string, pos: THREE.Vector3 = new THREE.Vector3(0, 0, 0)) {
     const material = new THREE.MeshPhongMaterial({ color: 0xdacbce });
     material.shininess = 0.0;
     let geometry;
@@ -410,10 +397,7 @@ class Scene {
   deletePoint(keyframe_uuid: string) {
     this.scene.children.forEach((object) => {
       if (object.userData.media_id) {
-        const obj_keyframe_uuid = object.userData.media_id.replace(
-          "Point::",
-          "",
-        );
+        const obj_keyframe_uuid = object.userData.media_id.replace("Point::", "");
         if (obj_keyframe_uuid === keyframe_uuid) {
           this.scene.remove(object);
           return;
@@ -426,10 +410,7 @@ class Scene {
     let keyframe_point = undefined;
     this.scene.children.forEach((object) => {
       if (object.userData.media_id) {
-        const obj_keyframe_uuid = object.userData.media_id.replace(
-          "Point::",
-          "",
-        );
+        const obj_keyframe_uuid = object.userData.media_id.replace("Point::", "");
         if (obj_keyframe_uuid === keyframe_uuid) {
           keyframe_point = object;
           return;
@@ -447,10 +428,7 @@ class Scene {
   ) {
     this.scene.traverse((object) => {
       if (object.userData.media_id) {
-        const obj_keyframe_uuid = object.userData.media_id.replace(
-          "Point::",
-          "",
-        );
+        const obj_keyframe_uuid = object.userData.media_id.replace("Point::", "");
         if (obj_keyframe_uuid === keyframe_uuid) {
           const first_quat = new THREE.Euler(
             THREE.MathUtils.degToRad(keyframe_rot.x),
@@ -490,16 +468,8 @@ class Scene {
     const group = this._buildCameraFrustum();
     group.name = "::CAM::";
     group.userData["name"] = "Camera";
-    group.position.set(
-      renderCam.position.x,
-      renderCam.position.y,
-      renderCam.position.z,
-    );
-    group.rotation.set(
-      renderCam.rotation.x,
-      renderCam.rotation.y,
-      renderCam.rotation.z,
-    );
+    group.position.set(renderCam.position.x, renderCam.position.y, renderCam.position.z);
+    group.rotation.set(renderCam.rotation.x, renderCam.rotation.y, renderCam.rotation.z);
     group.layers.set(1);
     group.children.forEach((child) => child.layers.set(1));
     this.scene.add(group);
@@ -518,8 +488,22 @@ class Scene {
     const br = new THREE.Vector3(halfW, -halfH, -depth);
     const bl = new THREE.Vector3(-halfW, -halfH, -depth);
     const points: THREE.Vector3[] = [
-      apex, tl, apex, tr, apex, br, apex, bl, // apex → corners
-      tl, tr, tr, br, br, bl, bl, tl, // near rectangle
+      apex,
+      tl,
+      apex,
+      tr,
+      apex,
+      br,
+      apex,
+      bl, // apex → corners
+      tl,
+      tr,
+      tr,
+      br,
+      br,
+      bl,
+      bl,
+      tl, // near rectangle
     ];
     const geometry = new THREE.BufferGeometry().setFromPoints(points);
     const material = new THREE.LineBasicMaterial({ color: 0xffffff });
@@ -598,14 +582,6 @@ class Scene {
     for (const [token, url] of results) {
       if (url) this.mediaUrlCache.set(token, url);
     }
-  }
-
-  private floatToPercent(value: number) {
-    return `${(value * 100).toFixed(0)}%`;
-  }
-
-  private async delay(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   setColor(object_uuid: string, hex_color: string) {
@@ -736,12 +712,7 @@ class Scene {
     const url = await this.getMediaURL(media_id);
 
     if (url.includes(".pmd") || url.includes(".pmx")) {
-      return await this.loadMMDWithPlaceholder(
-        media_id,
-        name,
-        auto_add,
-        position,
-      );
+      return await this.loadMMDWithPlaceholder(media_id, name, auto_add, position);
     } else if (
       url.includes(".png") ||
       url.includes(".jpg") ||
@@ -759,23 +730,10 @@ class Scene {
       }
       return obj;
     } else if (url.includes(".spz")) {
-      return await this.loadSplatWithPlaceholder(
-        media_id,
-        name,
-        auto_add,
-        position,
-        signal,
-      );
+      return await this.loadSplatWithPlaceholder(media_id, name, auto_add, position, signal);
     }
 
-    return await this.loadGlbWithPlaceholder(
-      media_id,
-      name,
-      auto_add,
-      position,
-      version,
-      signal,
-    );
+    return await this.loadGlbWithPlaceholder(media_id, name, auto_add, position, version, signal);
   }
 
   addChildrenToScene(parent: THREE.Object3D, scene: THREE.Scene): void {
@@ -876,16 +834,12 @@ class Scene {
     const key = media_id + name + generateUUID();
     await this.placeholder_manager.add(key, `Loading: ${name}`, position);
 
-    // await this.delay(3000); // artificial delay.
-
     // NB(bt,2025-07-22): This is causing a lot of CORS errors in dev, so I'm starting
     // to funnel everything through Tauri. Not sure if that'll be more inefficient due
     // to spinning up new HTTP clients with new SSL handshakes without caching, but at
     // least it should bypass the cors errors.
     //
-    // const glb = await this.load_glb_wrapped(url, async (progress) => {
     //   const total_loaded = progress.loaded / progress.total;
-    //   //const percent = this.floatToPercent(total_loaded);
     //   //console.log(`GLB Loading: ${percent}`);
     //
     //   if (total_loaded == 1.0) {
@@ -1006,10 +960,7 @@ class Scene {
   // WITHOUT adding it to the scene or attaching a loading placeholder. Used to
   // source skeletal animation clips (their `animations[0]`) for retargeting
   // onto characters — the clip's own mesh/armature is never rendered.
-  async loadRawGlb(
-    media_id: string,
-    signal?: AbortSignal,
-  ): Promise<GLTF | null> {
+  async loadRawGlb(media_id: string, signal?: AbortSignal): Promise<GLTF | null> {
     try {
       const url = await this.getMediaURL(media_id);
       return await this.load_glb_wrapped_no_cors(url, () => {}, signal);
@@ -1026,21 +977,16 @@ class Scene {
     onComplete: () => void,
     signal?: AbortSignal,
   ): Promise<GLTF> {
-    return new Promise<GLTF>(async (resolve, reject) => {
-      let buffer;
-      try {
-        // Host-supplied CORS-bypassed binary fetch (FetchProxy under
-        // Tauri; plain fetch under web hosts that allow it).
-        buffer = await (
-          await this.deps.fetchAsset(media_url, { signal })
-        ).arrayBuffer();
-      } catch (error) {
-        if ((error as { name?: string })?.name !== "AbortError") {
-          console.error("load GLB from Tauri error:", error);
-        }
-        reject(error);
-        return;
+    let buffer: ArrayBuffer;
+    try {
+      buffer = await (await this.deps.fetchAsset(media_url, { signal })).arrayBuffer();
+    } catch (error) {
+      if ((error as { name?: string })?.name !== "AbortError") {
+        console.error("load GLB from Tauri error:", error);
       }
+      throw error;
+    }
+    return new Promise<GLTF>((resolve, reject) => {
       const glbLoader = new GLTFLoader();
       glbLoader.parse(
         buffer,
@@ -1068,22 +1014,16 @@ class Scene {
     onComplete: () => void,
     signal?: AbortSignal,
   ): Promise<SplatMesh> {
-    return new Promise(async (resolve, reject) => {
-      let buffer;
-      try {
-        // Host-supplied CORS-bypassed binary fetch (FetchProxy under
-        // Tauri; plain fetch under web hosts that allow it).
-        buffer = await (
-          await this.deps.fetchAsset(media_url, { signal })
-        ).arrayBuffer();
-      } catch (error) {
-        if ((error as { name?: string })?.name !== "AbortError") {
-          console.error("load Splat from Tauri error:", error);
-        }
-        reject(error);
-        return;
+    let buffer: ArrayBuffer;
+    try {
+      buffer = await (await this.deps.fetchAsset(media_url, { signal })).arrayBuffer();
+    } catch (error) {
+      if ((error as { name?: string })?.name !== "AbortError") {
+        console.error("load Splat from Tauri error:", error);
       }
-
+      throw error;
+    }
+    return new Promise<SplatMesh>((resolve) => {
       new SplatMesh({
         fileBytes: buffer,
         onLoad: (mesh) => {
@@ -1091,31 +1031,6 @@ class Scene {
           onComplete();
         },
       });
-    });
-  }
-
-  /**
-   * Using a constructed media_url load a glb, grab the progress.
-   * @param media_url
-   * @param progress
-   * @returns
-   */
-  private load_glb_wrapped(
-    media_url: string,
-    progress: (event: ProgressEvent) => void,
-  ): Promise<GLTF> {
-    return new Promise((resolve, reject) => {
-      const glbLoader = new GLTFLoader();
-      glbLoader.load(
-        media_url,
-        (gltf) => {
-          resolve(gltf);
-        },
-        progress,
-        (error) => {
-          reject(error);
-        },
-      );
     });
   }
 
@@ -1151,6 +1066,10 @@ class Scene {
         media_url,
         ["/resources/pose/Lumine Idle cycle.vmd"],
         (mmd) => {
+          if (!this.helper) {
+            reject(new Error("The scene animation owner is unavailable."));
+            return;
+          }
           this.helper.add(mmd.mesh, {
             animation: mmd.animation,
             physics: false,
@@ -1186,7 +1105,7 @@ class Scene {
         if (this.hemisphereLight) this.scene.add(this.hemisphereLight);
         return;
       }
-    } catch (_) {
+    } catch {
       // no-op: fallback to defaults below
     }
 
@@ -1324,7 +1243,6 @@ class Scene {
     };
     this.scene.add(this.groundPlane);
   }
-
 }
 
 // Pausing alone keeps the decoder and buffered media alive; dropping the

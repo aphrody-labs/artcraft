@@ -2,21 +2,11 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "dist",
-    "types": [
-      "node",
-      "vite/client"
-    ],
+    "types": ["@aphrody/bun-types", "node", "vite/client"],
     "rootDir": "src",
     "jsx": "react-jsx",
     "tsBuildInfoFile": "dist/tsconfig.lib.tsbuildinfo"
   },
-  "exclude": [
-    "out-tsc",
-    "dist",
-    "vite.config.ts"
-  ],
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx"
-  ]
+  "exclude": ["out-tsc", "dist", "vite.config.ts"],
+  "include": ["src/**/*.ts", "src/**/*.tsx"]
 }

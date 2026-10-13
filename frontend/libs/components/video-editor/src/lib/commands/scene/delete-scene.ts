@@ -45,9 +45,10 @@ export class DeleteSceneCommand extends Command {
       scenes: updatedScenes,
       activeSceneId: newActiveScene?.id,
     });
+    return undefined;
   }
 
-  undo(): void {
+  override undo(): void {
     if (this.savedScenes && this.deletedScene) {
       const editor = EditorCore.getInstance();
       editor.scenes.setScenes({

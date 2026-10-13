@@ -8,19 +8,11 @@ export class AddMediaAssetCommand extends Command {
   private previousProjectFps: FrameRate | null = null;
   private appliedProjectFps: FrameRate | null = null;
 
-  constructor({
-    projectId,
-    asset,
-  }: {
-    projectId: string;
-    asset: MediaAsset;
-  }) {
+  constructor({ asset }: { projectId: string; asset: MediaAsset }) {
     super();
-    this.projectId = projectId;
     this.asset = asset;
   }
 
-  private projectId: string;
   private asset: MediaAsset;
 
   execute(): CommandResult | undefined {
@@ -39,7 +31,7 @@ export class AddMediaAssetCommand extends Command {
     return undefined;
   }
 
-  undo(): void {
+  override undo(): void {
     if (!this.savedAssets) return;
     const editor = EditorCore.getInstance();
     editor.media.setAssets({ assets: this.savedAssets });

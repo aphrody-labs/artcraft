@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 
 import { LoadingDots } from "@storyteller/ui-loading";
 import { Modal } from "@storyteller/ui-modal";
-import { UploadAssetError } from "../UploadModal/UploadAssetError";
-import { UploadSuccess } from "../UploadModal/UploadSuccess";
+import { UploadAssetError, UploadSuccess } from "@storyteller/ui-upload-modal";
 import { FilterEngineCategories, UploaderStates } from "~/enums";
 import { initialUploaderState, UploaderState } from "~/models";
 import { UploadImageMedia } from "./UploadImageMedia";
@@ -19,15 +18,8 @@ interface Props {
   };
 }
 
-export function UploadImageMediaModal({
-  isOpen,
-  onClose,
-  onSuccess,
-  title,
-  fileTypes,
-}: Props) {
-  const [uploaderState, setUploaderState] =
-    useState<UploaderState>(initialUploaderState);
+export function UploadImageMediaModal({ isOpen, onClose, onSuccess, title, fileTypes }: Props) {
+  const [uploaderState, setUploaderState] = useState<UploaderState>(initialUploaderState);
 
   const updateUploaderState = (newState: UploaderState) => {
     console.debug("newState", newState);
@@ -109,6 +101,7 @@ export function UploadImageMediaModal({
           />
         );
     }
+    return null;
   };
 
   return (

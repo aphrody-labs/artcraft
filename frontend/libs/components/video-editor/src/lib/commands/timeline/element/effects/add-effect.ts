@@ -63,7 +63,7 @@ export class AddClipEffectCommand extends Command {
     return undefined;
   }
 
-  undo(): void {
+  override undo(): void {
     if (this.savedState) {
       const editor = EditorCore.getInstance();
       editor.timeline.updateTracks(this.savedState);

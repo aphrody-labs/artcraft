@@ -1,12 +1,12 @@
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, expect, it, vi } from "vitest";
+import { afterEach, expect, it, vi } from "bun:test";
 import { GenerationProvider } from "@storyteller/common";
 import ProviderSetupModal from "./provider-setup-modal";
 
-const mocks = vi.hoisted(() => ({
+const mocks = (() => ({
   onLogin: (_event: { provider: GenerationProvider }) => {},
   invoke: vi.fn().mockResolvedValue(undefined),
-}));
+}))();
 
 vi.mock("@storyteller/tauri-events", () => ({
   useShowProviderLoginModalEvent: (callback: typeof mocks.onLogin) => {

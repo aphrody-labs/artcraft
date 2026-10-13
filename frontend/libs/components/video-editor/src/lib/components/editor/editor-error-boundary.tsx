@@ -32,13 +32,13 @@ export class EditorErrorBoundary extends Component<
   EditorErrorBoundaryProps,
   EditorErrorBoundaryState
 > {
-  state: EditorErrorBoundaryState = { error: null, retryKey: 0 };
+  override state: EditorErrorBoundaryState = { error: null, retryKey: 0 };
 
   static getDerivedStateFromError(error: Error): Partial<EditorErrorBoundaryState> {
     return { error };
   }
 
-  componentDidCatch(error: Error, info: ErrorInfo): void {
+  override componentDidCatch(error: Error, info: ErrorInfo): void {
     // Logged unconditionally — the user-reported "blank screen" crash
     // currently has no diagnostic; this is the first place an
     // upstream reporter can hook in. componentStack pinpoints which
@@ -54,7 +54,7 @@ export class EditorErrorBoundary extends Component<
     }));
   };
 
-  render(): ReactNode {
+  override render(): ReactNode {
     if (this.state.error) {
       return (
         <div className="bg-background flex h-full w-full flex-col items-center justify-center gap-4 p-6">

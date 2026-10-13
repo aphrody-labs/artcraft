@@ -1,4 +1,3 @@
-import { v4 as uuidv4 } from "uuid";
 import { UploaderStates, FilterEngineCategories } from "~/enums";
 import { MediaUploadApi, MediaFilesApi } from "~/Classes/ApiManager";
 import { getFileName } from "~/utilities";
@@ -25,7 +24,7 @@ export const uploadPlane = async ({
     fileName: assetFileName,
     engine_category: engineCategory,
     maybe_title: title,
-    uuid: uuidv4(),
+    uuid: crypto.randomUUID(),
   });
 
   if (!assetReponse.success || !assetReponse.data) {
@@ -51,7 +50,7 @@ export const uploadPlane = async ({
   }
 
   const thumbnailResponse = await mediaUploadApi.UploadImage({
-    uuid: uuidv4(),
+    uuid: crypto.randomUUID(),
     blob: thumbnailBlob,
     fileName: getFileName(assetFile),
     maybe_title: "thumbnail_" + title,
@@ -143,9 +142,7 @@ export const uploadPlaneFromMediaToken = async ({
   if (!mediaFileResponse.success || !mediaFileResponse.data) {
     progressCallback({
       status: UploaderStates.assetError,
-      errorMessage:
-        mediaFileResponse.errorMessage ||
-        "Could not fetch media file by token.",
+      errorMessage: mediaFileResponse.errorMessage || "Could not fetch media file by token.",
     });
     return;
   }
@@ -159,8 +156,7 @@ export const uploadPlaneFromMediaToken = async ({
     if (!renameResponse.success) {
       progressCallback({
         status: UploaderStates.assetError,
-        errorMessage:
-          renameResponse.errorMessage || "Could not rename media file.",
+        errorMessage: renameResponse.errorMessage || "Could not rename media file.",
       });
       return;
     }

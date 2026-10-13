@@ -1,8 +1,7 @@
 import { useState } from "react";
-import { H6 } from "~/components";
 import { Button } from "@storyteller/ui-button";
 import { Input } from "@storyteller/ui-input";
-import { FileUploader } from "../UploadModal/FileUploader";
+import { FileUploader } from "@storyteller/ui-file-uploader";
 import { UploaderState } from "~/models";
 import { uploadImage } from "./uploadImage";
 
@@ -16,7 +15,7 @@ interface Props {
 export const UploadImageMedia = ({
   fileTypes,
   onClose,
-  title,
+  title: _title,
   onUploadProgress,
 }: Props) => {
   const [uploadTitle, setUploadTitle] = useState<{
@@ -67,10 +66,10 @@ export const UploadImageMedia = ({
           className={uploadTitle.error ? "mb-3" : ""}
         />
         <FileUploader
-          title={title}
           fileTypes={fileTypes}
-          file={assetFile.value}
-          setFile={(file: File | null) => {
+          files={assetFile.value ? [assetFile.value] : []}
+          handleChange={(files: File[]) => {
+            const file = files[0] ?? null;
             if (file !== null) {
               setAssetFile({
                 value: file,
@@ -81,15 +80,11 @@ export const UploadImageMedia = ({
             }
           }}
         />
-        {assetFile.error && (
-          <H6 className="z-10 text-red"> {assetFile.error} </H6>
-        )}
+        {assetFile.error && <h6 className="z-10 text-red"> {assetFile.error} </h6>}
 
         <div className="relative m-auto aspect-square w-full overflow-hidden border border-white/15 bg-ui-controls">
           {!assetFile.value && (
-            <H6 className="absolute left-0 top-1/2 -mt-5 w-full text-center">
-              File Preview
-            </H6>
+            <h6 className="absolute left-0 top-1/2 -mt-5 w-full text-center">File Preview</h6>
           )}
           {assetFile.value && (
             <img

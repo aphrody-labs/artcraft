@@ -1,13 +1,11 @@
+import { vi, beforeEach, describe, it, expect } from "bun:test";
 import * as THREE from "three";
-import {
-  DEFAULT_MODEL3D_PARAMS,
-  render3DModelToDataUrl,
-} from "./render3DModel";
+import { DEFAULT_MODEL3D_PARAMS, render3DModelToDataUrl } from "./render3DModel";
 
-const { renderers, gltfOutcome } = vi.hoisted(() => ({
+const { renderers, gltfOutcome } = (() => ({
   renderers: [] as FakeRenderer[],
   gltfOutcome: { scene: undefined as unknown, error: undefined as unknown },
-}));
+}))();
 
 type FakeRenderer = {
   dispose: ReturnType<typeof vi.fn>;
@@ -15,8 +13,8 @@ type FakeRenderer = {
 };
 
 // jsdom has no WebGL; only the teardown calls matter here.
-vi.mock("three", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("three")>();
+const actualThree = { ...THREE };
+vi.mock("three", () => {
   class WebGLRenderer {
     domElement = { toDataURL: () => "data:image/png;base64,AAAA" };
     dispose = vi.fn();
@@ -28,7 +26,7 @@ vi.mock("three", async (importOriginal) => {
     setSize() {}
     render() {}
   }
-  return { ...actual, WebGLRenderer };
+  return { ...actualThree, WebGLRenderer };
 });
 
 vi.mock("three/examples/jsm/loaders/GLTFLoader.js", () => ({
@@ -58,10 +56,7 @@ describe("render3DModelToDataUrl", () => {
     geometry.addEventListener("dispose", onDispose);
     gltfOutcome.scene = new THREE.Mesh(geometry);
 
-    const dataUrl = await render3DModelToDataUrl(
-      "model.glb",
-      DEFAULT_MODEL3D_PARAMS,
-    );
+    const dataUrl = await render3DModelToDataUrl("model.glb", DEFAULT_MODEL3D_PARAMS);
 
     expect(dataUrl).toMatch(/^data:image\/png/);
     expect(onDispose).toHaveBeenCalledTimes(1);
@@ -72,9 +67,9 @@ describe("render3DModelToDataUrl", () => {
   it("frees the renderer's context when the model fails to load", async () => {
     gltfOutcome.error = new Error("404");
 
-    await expect(
-      render3DModelToDataUrl("missing.glb", DEFAULT_MODEL3D_PARAMS),
-    ).rejects.toThrow("404");
+    await expect(render3DModelToDataUrl("missing.glb", DEFAULT_MODEL3D_PARAMS)).rejects.toThrow(
+      "404",
+    );
 
     expect(renderers[0].dispose).toHaveBeenCalledTimes(1);
     expect(renderers[0].forceContextLoss).toHaveBeenCalledTimes(1);

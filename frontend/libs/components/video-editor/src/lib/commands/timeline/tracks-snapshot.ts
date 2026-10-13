@@ -3,13 +3,7 @@ import type { SceneTracks } from "../../timeline/types";
 import { EditorCore } from "../../core";
 
 export class TracksSnapshotCommand extends Command {
-  constructor({
-    before,
-    after,
-  }: {
-    before: SceneTracks;
-    after: SceneTracks;
-  }) {
+  constructor({ before, after }: { before: SceneTracks; after: SceneTracks }) {
     super();
     this.before = before;
     this.after = after;
@@ -23,7 +17,7 @@ export class TracksSnapshotCommand extends Command {
     return undefined;
   }
 
-  undo(): void {
+  override undo(): void {
     EditorCore.getInstance().timeline.updateTracks(this.before);
   }
 }

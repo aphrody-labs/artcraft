@@ -3,9 +3,9 @@ import { ApiManager, ApiResponse } from "./ApiManager";
 import { FilterEngineCategories, Visibility } from "~/enums";
 
 export class MediaUploadApi extends ApiManager {
-  private sessionToken: string = undefined;
+  private sessionToken?: string;
 
-  private async getSessionTokenForUploadStudioShot() {
+  private async getSessionTokenForUploadStudioShot(): Promise<ApiResponse<string>> {
     const endpoint = `${this.getApiSchemeAndHost()}/v1/session_token`;
     return await this.get<{
       maybe_signed_session: string;
@@ -41,19 +41,15 @@ export class MediaUploadApi extends ApiManager {
     const endpoint = `${this.ApiTargets.uploadApi}/v1/media_files/upload/studio_shot`;
 
     if (!this.sessionToken) {
-      console.log("Session Token");
       const response = await this.getSessionTokenForUploadStudioShot();
       if (response.success && response.data) {
         this.sessionToken = response.data;
-        console.log(`Token ${this.sessionToken}`);
       } else {
         return {
           success: false,
           errorMessage: "Could not obtain session tokens.",
         };
       }
-    } else {
-      console.log(`Session Token: ${this.sessionToken}`);
     }
 
     const options: Record<string, string | number | undefined> = {
@@ -170,7 +166,7 @@ export class MediaUploadApi extends ApiManager {
     uuid,
     maybe_title,
     maybe_visibility = Visibility.Public,
-    is_intermediate_system_file = EIntermediateFile.true
+    is_intermediate_system_file = EIntermediateFile.true,
   }: {
     blob: Blob;
     fileName: string;

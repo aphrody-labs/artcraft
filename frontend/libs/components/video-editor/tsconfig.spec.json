@@ -4,6 +4,7 @@
     "outDir": "./out-tsc/vitest",
     "rootDir": "../../..",
     "types": [
+      "@aphrody/bun-types",
       "vitest/globals",
       "vitest/importMeta",
       "vite/client",

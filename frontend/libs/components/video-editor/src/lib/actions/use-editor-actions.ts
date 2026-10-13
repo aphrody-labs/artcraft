@@ -20,21 +20,14 @@ import { getElementsAtTime, hasMediaId } from "../timeline/element-utils";
 import { cancelInteraction } from "../editor/cancel-interaction";
 import { invokeAction } from ".";
 import { canToggleSourceAudio } from "../timeline/audio-separation";
-import {
-  activateScope,
-  clearActiveScope,
-  type ScopeEntry,
-} from "../selection/scope";
+import { activateScope, clearActiveScope, type ScopeEntry } from "../selection/scope";
 import { useCommittedRef } from "../hooks/use-committed-ref";
-import type { ElementRef } from "../timeline/types";
 
 export function useEditorActions() {
   const editor = useEditor();
   const { selectedElements, setElementSelection } = useElementSelection();
   const { selectedKeyframes, clearKeyframeSelection } = useKeyframeSelection();
-  const selectedMaskPointSelection = useEditor((e) =>
-    e.selection.getSelectedMaskPointSelection(),
-  );
+  const selectedMaskPointSelection = useEditor((e) => e.selection.getSelectedMaskPointSelection());
   const toggleSnapping = useTimelineStore((s) => s.toggleSnapping);
   const rippleEditingEnabled = useTimelineStore((s) => s.rippleEditingEnabled);
   const toggleRippleEditing = useTimelineStore((s) => s.toggleRippleEditing);
@@ -125,11 +118,11 @@ export function useEditorActions() {
   useActionHandler(
     "frame-step-forward",
     () => {
-      const fps = editor.project.getActive().settings.fps;
+      const project = editor.project.getActive();
+      if (!project) return;
+      const fps = project.settings.fps;
       const ticksPerFrame = mediaTime({
-        ticks: Math.round(
-          (TICKS_PER_SECOND * fps.denominator) / fps.numerator,
-        ),
+        ticks: Math.round((TICKS_PER_SECOND * fps.denominator) / fps.numerator),
       });
       editor.playback.seek({
         time: minMediaTime({
@@ -147,11 +140,11 @@ export function useEditorActions() {
   useActionHandler(
     "frame-step-backward",
     () => {
-      const fps = editor.project.getActive().settings.fps;
+      const project = editor.project.getActive();
+      if (!project) return;
+      const fps = project.settings.fps;
       const ticksPerFrame = mediaTime({
-        ticks: Math.round(
-          (TICKS_PER_SECOND * fps.denominator) / fps.numerator,
-        ),
+        ticks: Math.round((TICKS_PER_SECOND * fps.denominator) / fps.numerator),
       });
       editor.playback.seek({
         time: maxMediaTime({
@@ -355,11 +348,7 @@ export function useEditorActions() {
           return null;
         }
 
-        return (
-          editor.media
-            .getAssets()
-            .find((asset) => asset.id === element.mediaId) ?? null
-        );
+        return editor.media.getAssets().find((asset) => asset.id === element.mediaId) ?? null;
       })();
       if (!canToggleSourceAudio(selectedElement.element, mediaAsset)) {
         return;

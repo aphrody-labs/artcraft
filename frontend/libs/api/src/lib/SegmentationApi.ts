@@ -1,5 +1,4 @@
 import { ApiManager } from "./ApiManager.js";
-import { v4 as uuidv4 } from "uuid";
 
 export interface Coordinates {
   coordinates: [number, number];
@@ -45,11 +44,9 @@ export interface SegmentationResponse {
 
 export class SegmentationApi extends ApiManager {
   // returns uuid
-  public async createSession(
-    blobVideo: File | Blob,
-  ): Promise<{ session_id: string }> {
+  public async createSession(blobVideo: File | Blob): Promise<{ session_id: string }> {
     const endpoint = `https://hax.storyteller.ai/segmentation/new_session`;
-    const id = uuidv4().toString();
+    const id = crypto.randomUUID().toString();
     return this.postFormVideo<{ session_id: "fix-mimetype" }>({
       endpoint: endpoint,
       formRecord: {

@@ -1,11 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { actionMatchesQuery, groupActions } from "./search";
 import { ActionDef, Binding } from "../types";
 
-const action = (
-  label: string,
-  group: ActionDef["group"] = "Transform",
-): ActionDef => ({
+const action = (label: string, group: ActionDef["group"] = "Transform"): ActionDef => ({
   id: `pagescene.transform.${label}`,
   label,
   group,
@@ -20,9 +17,7 @@ describe("actionMatchesQuery", () => {
     });
 
     it("matches the group name", () => {
-      expect(actionMatchesQuery(action("Scale", "Transform"), [], "transform")).toBe(
-        true,
-      );
+      expect(actionMatchesQuery(action("Scale", "Transform"), [], "transform")).toBe(true);
     });
 
     it("requires every whitespace-separated term", () => {
@@ -57,12 +52,8 @@ describe("actionMatchesQuery", () => {
     });
 
     it("matches named keys by synonym", () => {
-      expect(
-        actionMatchesQuery(action("Clear"), [{ code: "Escape" }], "esc"),
-      ).toBe(true);
-      expect(
-        actionMatchesQuery(action("Up"), [{ code: "ArrowUp" }], "arrow"),
-      ).toBe(true);
+      expect(actionMatchesQuery(action("Clear"), [{ code: "Escape" }], "esc")).toBe(true);
+      expect(actionMatchesQuery(action("Up"), [{ code: "ArrowUp" }], "arrow")).toBe(true);
     });
 
     it("matches numpad and its digit mirror", () => {
@@ -72,20 +63,14 @@ describe("actionMatchesQuery", () => {
     });
 
     it("does not match an unrelated key", () => {
-      expect(actionMatchesQuery(action("Scale"), [{ code: "KeyS" }], "q")).toBe(
-        false,
-      );
+      expect(actionMatchesQuery(action("Scale"), [{ code: "KeyS" }], "q")).toBe(false);
     });
   });
 });
 
 describe("groupActions", () => {
   it("buckets actions by group preserving first-seen order", () => {
-    const actions = [
-      action("a", "Camera"),
-      action("b", "Transform"),
-      action("c", "Camera"),
-    ];
+    const actions = [action("a", "Camera"), action("b", "Transform"), action("c", "Camera")];
     const grouped = groupActions(actions);
     expect(grouped.map((g) => g.group)).toEqual(["Camera", "Transform"]);
     expect(grouped[0].actions.map((a) => a.label)).toEqual(["a", "c"]);

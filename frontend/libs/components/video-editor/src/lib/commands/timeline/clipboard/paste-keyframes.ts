@@ -133,7 +133,7 @@ export class PasteKeyframesCommand extends Command {
     return undefined;
   }
 
-  undo(): void {
+  override undo(): void {
     if (!this.savedState) {
       return;
     }
