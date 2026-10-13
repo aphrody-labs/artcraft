@@ -1,8 +1,9 @@
+use strum::EnumIter;
 use serde_derive::{Deserialize, Serialize};
 
 /// Common image models supported by the router.
 /// Not all models are available through all providers.
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, EnumIter)]
 #[serde(rename_all = "snake_case")]
 pub enum RouterImageModel {
   #[serde(rename = "flux_1_dev")]

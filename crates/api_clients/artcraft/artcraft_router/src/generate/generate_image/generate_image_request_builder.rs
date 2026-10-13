@@ -1,3 +1,4 @@
+use serde_derive::Deserialize;
 use crate::generate::generate_image::providers::midjourney::build::build_midjourney;
 use crate::api::router_aspect_ratio::RouterAspectRatio;
 use crate::api::router_image_model::RouterImageModel;
@@ -53,7 +54,8 @@ use crate::generate::generate_image::providers::kinovi::midjourney_7_niji::build
 use crate::generate::generate_image::providers::kinovi::midjourney_8::build::build_kinovi_midjourney_8;
 use crate::generate::generate_image::providers::kinovi::seedream_5p0_pro::build::build_kinovi_seedream_5p0_pro;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct GenerateImageRequestBuilder {
   /// Which model to use.
   pub model: RouterImageModel,

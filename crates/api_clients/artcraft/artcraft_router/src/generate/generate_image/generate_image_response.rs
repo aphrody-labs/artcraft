@@ -1,14 +1,15 @@
+use serde_derive::Serialize;
 use std::fmt::Debug;
 use std::sync::Arc;
 
 use tokens::tokens::generic_inference_jobs::InferenceJobToken;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ArtcraftImageResponsePayload {
   pub inference_job_token: InferenceJobToken,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct FalImageResponsePayload {
   pub request_id: Option<String>,
   pub gateway_request_id: Option<String>,
@@ -22,13 +23,14 @@ pub struct FalImageResponsePayload {
   /// The outbound request that was sent to Fal.
   /// Stored as a trait object so any Request type can be captured.
   /// Use `format!("{:?}", ...)` or `format!("{:#?}", ...)` to print.
+  #[serde(skip_serializing)]
   pub maybe_outbound_request: Option<Arc<dyn Debug + Send + Sync>>,
 }
 
 /// Response from the KinoviWeb/Kinovi provider (used for Midjourney
 /// image generation). Mirrors `KinoviWebVideoResponsePayload` on the
 /// video side.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct KinoviWebImageResponsePayload {
   pub order_id: String,
   pub task_id: String,
@@ -36,7 +38,8 @@ pub struct KinoviWebImageResponsePayload {
   pub maybe_task_ids: Option<Vec<String>>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "snake_case")]
 pub enum GenerateImageResponse {
   Midjourney(MidjourneyImageResponsePayload),
   Artcraft(ArtcraftImageResponsePayload),
@@ -67,7 +70,7 @@ impl GenerateImageResponse {
   }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct MidjourneyImageResponsePayload {
   pub job_id: String,
 }

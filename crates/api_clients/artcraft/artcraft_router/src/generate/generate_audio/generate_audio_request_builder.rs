@@ -1,3 +1,4 @@
+use serde_derive::Deserialize;
 use enums::common::generation::common_musical_key::CommonMusicalKey;
 
 use crate::api::audio_list_ref::AudioListRef;
@@ -21,7 +22,8 @@ use crate::generate::generate_audio::providers::kinovi::suno_sounds::build::buil
 /// RouterProvider-agnostic audio generation request. Distilled by `build2()`
 /// into an `AudioGenerationDraftOrRequest` for the selected (provider, model)
 /// pair.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct GenerateAudioRequestBuilder {
   /// Which model to use.
   pub model: RouterAudioModel,

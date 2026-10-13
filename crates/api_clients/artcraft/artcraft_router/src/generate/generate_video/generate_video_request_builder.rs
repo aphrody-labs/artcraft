@@ -1,3 +1,4 @@
+use serde_derive::Deserialize;
 use crate::api::audio_list_ref::AudioListRef;
 use crate::api::character_list_ref::CharacterListRef;
 use crate::api::router_aspect_ratio::RouterAspectRatio;
@@ -83,7 +84,8 @@ use crate::generate::generate_video::video_generation_draft_or_request::VideoGen
 
 /// RouterProvider-agnostic video generation request. Distilled by `build2()` into a
 /// `VideoGenerationDraftOrRequest` for the selected (provider, model) pair.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct GenerateVideoRequestBuilder {
   /// Which model to use.
   pub model: RouterVideoModel,

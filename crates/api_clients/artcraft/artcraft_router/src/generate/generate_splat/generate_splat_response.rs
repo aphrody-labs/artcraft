@@ -1,15 +1,16 @@
+use serde_derive::Serialize;
 use std::fmt::Debug;
 use std::sync::Arc;
 
 use tokens::tokens::generic_inference_jobs::InferenceJobToken;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ArtcraftSplatResponsePayload {
   pub inference_job_token: InferenceJobToken,
   pub all_inference_job_tokens: Vec<InferenceJobToken>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct WorldLabsSplatResponsePayload {
   /// The World Labs operation ID; poll it for generation status.
   pub operation_id: String,
@@ -17,7 +18,7 @@ pub struct WorldLabsSplatResponsePayload {
 }
 
 /// Fal's queue/webhook submission receipt for a splat generation.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct FalSplatResponsePayload {
   /// Fal's ID for the queued request. Present on queue submissions and on
   /// most webhook submissions.
@@ -33,10 +34,12 @@ pub struct FalSplatResponsePayload {
   pub maybe_response_url: Option<String>,
 
   /// The outbound request we sent, for debug logging.
+  #[serde(skip_serializing)]
   pub maybe_outbound_request: Option<Arc<dyn Debug + Send + Sync>>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "snake_case")]
 pub enum GenerateSplatResponse {
   Artcraft(ArtcraftSplatResponsePayload),
   Fal(FalSplatResponsePayload),

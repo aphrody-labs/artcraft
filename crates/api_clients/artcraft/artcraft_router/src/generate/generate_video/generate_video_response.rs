@@ -1,15 +1,16 @@
+use serde_derive::Serialize;
 use std::fmt::Debug;
 use std::sync::Arc;
 
 use tokens::tokens::generic_inference_jobs::InferenceJobToken;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ArtcraftVideoResponsePayload {
   pub inference_job_token: InferenceJobToken,
   pub all_inference_job_tokens: Vec<InferenceJobToken>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct KinoviWebVideoResponsePayload {
   pub order_id: String,
   pub task_id: String,
@@ -17,7 +18,7 @@ pub struct KinoviWebVideoResponsePayload {
   pub maybe_task_ids: Option<Vec<String>>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct FalVideoResponsePayload {
   pub request_id: Option<String>,
   pub gateway_request_id: Option<String>,
@@ -33,15 +34,16 @@ pub struct FalVideoResponsePayload {
   /// The outbound request that was sent to Fal.
   /// Stored as a trait object so any Request type can be captured.
   /// Use `format!("{:?}", ...)` or `format!("{:#?}", ...)` to print.
+  #[serde(skip_serializing)]
   pub maybe_outbound_request: Option<Arc<dyn Debug + Send + Sync>>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct GmiCloudVideoResponsePayload {
   pub request_id: String,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct GrokVideoResponsePayload {
   /// xAI request_id; poll with `grok_api_client::api::requests::videos::video_status`
   /// to fetch the rendered video URL once it's ready.
@@ -50,10 +52,12 @@ pub struct GrokVideoResponsePayload {
   /// The outbound request that was sent to Grok (xAI).
   /// Stored as a trait object so any Request type can be captured.
   /// Use `format!("{:?}", ...)` or `format!("{:#?}", ...)` to print.
+  #[serde(skip_serializing)]
   pub maybe_outbound_request: Option<Arc<dyn Debug + Send + Sync>>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "snake_case")]
 pub enum GenerateVideoResponse {
   Artcraft(ArtcraftVideoResponsePayload),
   GmiCloud(GmiCloudVideoResponsePayload),

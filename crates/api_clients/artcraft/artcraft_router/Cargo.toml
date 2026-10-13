@@ -8,6 +8,10 @@ publish = false
 name = "artcraft_router"
 path = "src/lib.rs"
 
+[[bin]]
+name = "artcraft-cli"
+path = "src/cli.rs"
+
 [dependencies]
 midjourney_client.workspace = true
 browser_emulation.workspace = true
@@ -31,12 +35,12 @@ reqwest.workspace = true
 serde.workspace = true
 wreq.workspace = true
 serde_derive.workspace = true
-tokio.workspace = true
+tokio = { workspace = true, features = ["rt", "time", "io-std", "io-util"] }
 uuid.workspace = true
+serde_json.workspace = true
+strum.workspace = true
 
 [dev-dependencies]
 test_data.workspace = true
 test_utils.workspace = true
-strum.workspace = true
-serde_json.workspace = true
 

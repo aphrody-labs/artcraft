@@ -1,3 +1,4 @@
+use serde_derive::Deserialize;
 use crate::api::image_list_ref::ImageListRef;
 use crate::api::router_provider::RouterProvider;
 use crate::api::router_splat_model::RouterSplatModel;
@@ -23,7 +24,8 @@ use crate::generate::generate_splat::splat_generation_draft_or_request::SplatGen
 /// NB: The deprecated marble 0.1 models are treated as their marble 1.x
 /// successors (`Marble0p1Mini` → `Marble1p0Draft`, `Marble0p1Plus` →
 /// `Marble1p0`).
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct GenerateSplatRequestBuilder {
   /// Which model to use.
   pub model: RouterSplatModel,

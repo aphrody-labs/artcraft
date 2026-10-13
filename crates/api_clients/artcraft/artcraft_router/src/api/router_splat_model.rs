@@ -1,8 +1,9 @@
+use strum::EnumIter;
 use serde_derive::{Deserialize, Serialize};
 
 /// Common splat models supported by the router.
 /// Not all models are available through all providers.
-#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, EnumIter)]
 #[serde(rename_all = "snake_case")]
 pub enum RouterSplatModel {
   /// Deprecated upstream; treated as [`Self::Marble1p0Draft`].

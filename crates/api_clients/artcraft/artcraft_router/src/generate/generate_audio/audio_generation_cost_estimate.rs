@@ -1,5 +1,6 @@
+use serde_derive::Serialize;
 /// The result of estimating the cost of an audio generation plan.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct AudioGenerationCostEstimate {
   pub cost_in_credits: Option<u64>,
   pub cost_in_usd_cents: Option<u64>,
