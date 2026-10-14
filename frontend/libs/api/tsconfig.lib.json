@@ -1,7 +1,6 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "baseUrl": ".",
     "paths": {
       "lib/*": ["./src/lib/*"]
     },
@@ -12,7 +11,7 @@
     "module": "Preserve",
     "moduleResolution": "bundler",
     "forceConsistentCasingInFileNames": true,
-    "types": ["@aphrody/bun-types", "node", "vite/client"]
+    "types": ["@aphrody/bun-types", "node"]
   },
   "include": ["src/**/*.ts"],
   "references": [

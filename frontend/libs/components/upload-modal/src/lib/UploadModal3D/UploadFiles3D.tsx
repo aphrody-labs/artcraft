@@ -1,10 +1,20 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { PanelGroup, Panel, PanelResizeHandle } from "react-resizable-panels";
+import { Group, Panel, Separator } from "react-resizable-panels";
 import { ListDropdown } from "@storyteller/ui-list-dropdown";
 import { Select } from "@storyteller/ui-select";
 import { Button } from "@storyteller/ui-button";
 import { FileUploader } from "@storyteller/ui-file-uploader";
-import { BoneIcon, BoxIcon, CheckIcon, ChevronLeftIcon, ChevronRightIcon, CircleAlertIcon, LoaderIcon, RotateCwIcon, XIcon } from "lucide-react";
+import {
+  BoneIcon,
+  BoxIcon,
+  CheckIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  CircleAlertIcon,
+  LoaderIcon,
+  RotateCwIcon,
+  XIcon,
+} from "lucide-react";
 import * as THREE from "three";
 import {
   convertFbxToGlb,
@@ -84,9 +94,7 @@ export const UploadFiles3D = ({
   const fileSubtypes = options?.fileSubtypes;
 
   const [subtype, setSubtype] = useState<MediaFileAnimationType | undefined>(
-    fileSubtypes
-      ? (Object.values(fileSubtypes[0])[0] as MediaFileAnimationType)
-      : undefined,
+    fileSubtypes ? (Object.values(fileSubtypes[0])[0] as MediaFileAnimationType) : undefined,
   );
 
   const seedFiles = initialFiles ?? [];
@@ -97,7 +105,7 @@ export const UploadFiles3D = ({
   const isFbx = (file: File) => file.name.toLowerCase().endsWith(".fbx");
 
   const [fileEntries, setFileEntries] = useState<FileEntry[]>(
-    seedFiles.map((f) => ({
+    seedFiles.map(f => ({
       file: f,
       status: isFbx(f) ? "converting" : "idle",
     })),
@@ -142,9 +150,7 @@ export const UploadFiles3D = ({
   // there'd otherwise be nothing to see.
   const [previewHasRig, setPreviewHasRig] = useState(false);
   const [previewSkeletonVisible, setPreviewSkeletonVisible] = useState(false);
-  const setSkeletonVisibleRef = useRef<((visible: boolean) => void) | null>(
-    null,
-  );
+  const setSkeletonVisibleRef = useRef<((visible: boolean) => void) | null>(null);
 
   const handlePreviewClipChange = (value: string | number) => {
     const index = Number(value);
@@ -153,7 +159,7 @@ export const UploadFiles3D = ({
   };
 
   const handleSkeletonToggle = () => {
-    setPreviewSkeletonVisible((visible) => {
+    setPreviewSkeletonVisible(visible => {
       const next = !visible;
       setSkeletonVisibleRef.current?.(next);
       return next;
@@ -174,27 +180,23 @@ export const UploadFiles3D = ({
   // removed the file mid-conversion.
   const beginFbxConversion = (original: File) => {
     convertFbxToGlb(original)
-      .then((converted) => {
+      .then(converted => {
         // Discarded pick (re-picked/removed mid-conversion): nothing to
         // swap, and no reason to reload anyone's preview.
-        if (!fileEntriesRef.current.some((e) => e.file === original)) return;
-        setFileEntries((prev) =>
-          prev.map((entry) =>
-            entry.file === original
-              ? { file: converted, status: "idle" as FileEntryStatus }
-              : entry,
-          ),
+        if (!fileEntriesRef.current.some(e => e.file === original)) return;
+        setFileEntries(prev =>
+          prev.map(entry => (entry.file === original ? { file: converted, status: "idle" as FileEntryStatus } : entry)),
         );
         // Re-run the preview effect ONLY when the converted entry is the
         // one being previewed — a blanket bump reloaded the current
         // preview once per completed conversion in a multi-FBX pick.
         if (currentPreviewFileRef.current === original) {
-          setFilesVersion((v) => v + 1);
+          setFilesVersion(v => v + 1);
         }
       })
-      .catch((error) => {
-        setFileEntries((prev) =>
-          prev.map((entry) =>
+      .catch(error => {
+        setFileEntries(prev =>
+          prev.map(entry =>
             entry.file === original
               ? {
                   ...entry,
@@ -238,18 +240,17 @@ export const UploadFiles3D = ({
       return;
     }
 
-    const { renderer, camera, selectAnimation, setSkeletonVisible, dispose } =
-      loadPreviewOnCanvas({
-        file: currentFile,
-        canvas: canvasRef.current,
-        statusCallback: setPreviewStatus,
-        onAnimationsAvailable: setPreviewAnimations,
-        onModelInfo: (info) => {
-          if (!info.hasMesh) onMeshlessDetected?.();
-          setPreviewHasRig(info.hasBones || !info.hasMesh);
-          setPreviewSkeletonVisible(!info.hasMesh);
-        },
-      });
+    const { renderer, camera, selectAnimation, setSkeletonVisible, dispose } = loadPreviewOnCanvas({
+      file: currentFile,
+      canvas: canvasRef.current,
+      statusCallback: setPreviewStatus,
+      onAnimationsAvailable: setPreviewAnimations,
+      onModelInfo: info => {
+        if (!info.hasMesh) onMeshlessDetected?.();
+        setPreviewHasRig(info.hasBones || !info.hasMesh);
+        setPreviewSkeletonVisible(!info.hasMesh);
+      },
+    });
     rendererRef.current = renderer;
     disposePreviewRef.current = dispose;
     cameraRef.current = camera;
@@ -272,10 +273,10 @@ export const UploadFiles3D = ({
     if (previewStatus.type === "OK" && canvasRef.current) {
       snapshotCanvasAsThumbnail({
         targetNode: canvasRef.current,
-        resultCallback: (blob) => {
+        resultCallback: blob => {
           const currentFile = fileEntries[previewIndex]?.file;
           if (blob && currentFile) {
-            setThumbnails((prev) => new Map(prev).set(currentFile, blob));
+            setThumbnails(prev => new Map(prev).set(currentFile, blob));
           }
         },
       });
@@ -288,47 +289,33 @@ export const UploadFiles3D = ({
       setSubtype(undefined);
       return;
     }
-    setSubtype(
-      Object.values(fileSubtypes[0])[0] as MediaFileAnimationType | undefined,
-    );
+    setSubtype(Object.values(fileSubtypes[0])[0] as MediaFileAnimationType | undefined);
   }, [fileSubtypes]);
 
   // Status updates are keyed by FILE IDENTITY, never by row index: async
   // upload/parse callbacks outlive list mutations (removing a row, re-picks),
   // and a positional index captured before an await would land the status on
   // whatever row shifted into that slot.
-  const updateFileStatusByFile = (
-    file: File,
-    status: FileEntryStatus,
-    errorMessage?: string,
-  ) => {
-    setFileEntries((prev) =>
-      prev.map((entry) =>
-        entry.file === file ? { ...entry, status, errorMessage } : entry,
-      ),
-    );
+  const updateFileStatusByFile = (file: File, status: FileEntryStatus, errorMessage?: string) => {
+    setFileEntries(prev => prev.map(entry => (entry.file === file ? { ...entry, status, errorMessage } : entry)));
   };
 
   const removeFile = (index: number) => {
-    setFileEntries((prev) => {
+    setFileEntries(prev => {
       const next = prev.filter((_, i) => i !== index);
-      setPreviewIndex((prevIdx) =>
-        Math.min(prevIdx, Math.max(0, next.length - 1)),
-      );
+      setPreviewIndex(prevIdx => Math.min(prevIdx, Math.max(0, next.length - 1)));
       return next;
     });
-    setFilesVersion((v) => v + 1);
+    setFilesVersion(v => v + 1);
   };
 
   // Resolve the backend-required clip durations for an animation upload.
   // Files with no clips are marked as errors (the backend would reject them)
   // and excluded from the returned map.
-  const resolveAnimationDurations = async (
-    files: File[],
-  ): Promise<Map<File, number>> => {
+  const resolveAnimationDurations = async (files: File[]): Promise<Map<File, number>> => {
     const durations = new Map<File, number>();
     await Promise.all(
-      files.map(async (file) => {
+      files.map(async file => {
         // A parse REJECTION (corrupt file) and a clip-less null are
         // different problems — conflating them sent users hunting for
         // missing clips in files that simply couldn't be read.
@@ -344,9 +331,7 @@ export const UploadFiles3D = ({
           updateFileStatusByFile(
             file,
             "error",
-            unreadable
-              ? "Couldn't read this file — it may be corrupt."
-              : "No animation clips found in this file.",
+            unreadable ? "Couldn't read this file — it may be corrupt." : "No animation clips found in this file.",
           );
         } else {
           durations.set(file, millis);
@@ -356,13 +341,11 @@ export const UploadFiles3D = ({
     return durations;
   };
 
-  const isAnimationUpload =
-    engineCategory === FilterEngineCategories.ANIMATION;
+  const isAnimationUpload = engineCategory === FilterEngineCategories.ANIMATION;
 
   const retrySingleFile = async (index: number) => {
     const entry = fileEntries[index];
-    if (!entry || entry.status === "uploading" || entry.status === "converting")
-      return;
+    if (!entry || entry.status === "uploading" || entry.status === "converting") return;
     // A failed FBX conversion retries the conversion, not an upload — the
     // raw FBX must never reach the backend.
     if (isFbx(entry.file)) {
@@ -388,9 +371,7 @@ export const UploadFiles3D = ({
         updateFileStatusByFile(
           entry.file,
           "error",
-          unreadable
-            ? "Couldn't read this file — it may be corrupt."
-            : "No animation clips found in this file.",
+          unreadable ? "Couldn't read this file — it may be corrupt." : "No animation clips found in this file.",
         );
         return;
       }
@@ -403,7 +384,7 @@ export const UploadFiles3D = ({
       animationType: subtype,
       durationMillis,
       thumbnailSnapshot: thumbnails.get(entry.file),
-      progressCallback: (state) => {
+      progressCallback: state => {
         if (state.status === UploaderStates.success) {
           updateFileStatusByFile(entry.file, "success");
         } else if (
@@ -419,13 +400,13 @@ export const UploadFiles3D = ({
 
   const handleFilesChange = (files: File[]) => {
     setFileEntries(
-      files.map((f) => ({
+      files.map(f => ({
         file: f,
         status: isFbx(f) ? "converting" : "idle",
       })),
     );
     setPreviewIndex(0);
-    setFilesVersion((v) => v + 1);
+    setFilesVersion(v => v + 1);
     setThumbnails(new Map());
     setSelectionError(undefined);
     setOverallProgress(null);
@@ -446,7 +427,7 @@ export const UploadFiles3D = ({
       releaseSubmitGuard();
       return;
     }
-    if (fileEntries.some((e) => e.status === "converting")) {
+    if (fileEntries.some(e => e.status === "converting")) {
       setSelectionError("Still converting FBX files — one moment.");
       releaseSubmitGuard();
       return;
@@ -455,18 +436,13 @@ export const UploadFiles3D = ({
     // Un-converted FBX entries (conversion failed) are excluded — the raw
     // FBX must never be uploaded.
     const pendingEntries = fileEntries.filter(
-      (entry) =>
-        entry.status !== "success" &&
-        entry.file !== undefined &&
-        !isFbx(entry.file),
+      entry => entry.status !== "success" && entry.file !== undefined && !isFbx(entry.file),
     );
     // Entries dropped from the submission (failed FBX conversions here,
     // clip-less animation files below) still count against the run's
     // outcome — a run that silently skips files must not report success.
-    let excludedCount =
-      fileEntries.filter((e) => e.status !== "success").length -
-      pendingEntries.length;
-    let files = pendingEntries.map((entry) => entry.file!);
+    let excludedCount = fileEntries.filter(e => e.status !== "success").length - pendingEntries.length;
+    let files = pendingEntries.map(entry => entry.file!);
 
     if (files.length === 0) {
       setSelectionError(
@@ -483,8 +459,8 @@ export const UploadFiles3D = ({
     let durations: Map<File, number> | undefined;
     if (isAnimationUpload) {
       durations = await resolveAnimationDurations(files);
-      const keep = files.map((file) => durations!.has(file));
-      excludedCount += keep.filter((kept) => !kept).length;
+      const keep = files.map(file => durations!.has(file));
+      excludedCount += keep.filter(kept => !kept).length;
       files = files.filter((_, i) => keep[i]);
       if (files.length === 0) {
         setSelectionError("No animation clips found in the selected file(s).");
@@ -495,7 +471,7 @@ export const UploadFiles3D = ({
 
     const pendingThumbnails = new Map<File, Blob>(
       files
-        .map((file) => [file, thumbnails.get(file) ?? undefined])
+        .map(file => [file, thumbnails.get(file) ?? undefined])
         .filter((pair): pair is [File, Blob] => pair[1] !== undefined),
     );
 
@@ -529,8 +505,7 @@ export const UploadFiles3D = ({
       durationsMillis: durations,
       onFileStatusChange: (batchIndex, status, errorMessage) =>
         updateFileStatusByFile(files[batchIndex], status, errorMessage),
-      onOverallProgress: (completed, total) =>
-        setOverallProgress({ current: completed, total }),
+      onOverallProgress: (completed, total) => setOverallProgress({ current: completed, total }),
       onComplete: (allSucceeded, anySucceeded) => {
         setIsUploading(false);
         releaseSubmitGuard();
@@ -557,24 +532,19 @@ export const UploadFiles3D = ({
   const retryAllFailed = async () => {
     // FBX conversion failures are excluded (they retry per-row as a
     // re-conversion); this batch path only re-uploads real GLBs.
-    let failedFiles = fileEntries
-      .filter((e) => e.status === "error" && !isFbx(e.file))
-      .map((e) => e.file);
+    let failedFiles = fileEntries.filter(e => e.status === "error" && !isFbx(e.file)).map(e => e.file);
     if (failedFiles.length === 0) return;
 
     let durations: Map<File, number> | undefined;
     if (isAnimationUpload) {
       durations = await resolveAnimationDurations(failedFiles);
-      failedFiles = failedFiles.filter((file) => durations!.has(file));
+      failedFiles = failedFiles.filter(file => durations!.has(file));
       if (failedFiles.length === 0) return;
     }
 
     const failedThumbnails = new Map<File, Blob>(
       failedFiles
-        .map((file): [File, Blob | undefined] => [
-          file,
-          thumbnails.get(file) ?? undefined,
-        ])
+        .map((file): [File, Blob | undefined] => [file, thumbnails.get(file) ?? undefined])
         .filter((pair): pair is [File, Blob] => pair[1] !== undefined),
     );
 
@@ -589,8 +559,7 @@ export const UploadFiles3D = ({
       durationsMillis: durations,
       onFileStatusChange: (batchIndex, status, errorMessage) =>
         updateFileStatusByFile(failedFiles[batchIndex], status, errorMessage),
-      onOverallProgress: (completed, total) =>
-        setOverallProgress({ current: completed, total }),
+      onOverallProgress: (completed, total) => setOverallProgress({ current: completed, total }),
       onComplete: (allSucceeded, anySucceeded) => {
         setIsUploading(false);
         if (allSucceeded) {
@@ -608,15 +577,12 @@ export const UploadFiles3D = ({
   // Overlayed on the preview canvas: bone toggle for rigged models and the
   // clip picker for models with baked animations; still models get no extra
   // chrome. Shared by the single and multi layouts.
-  const animationPicker = (previewAnimations.length > 0 ||
-    previewHasRig) && (
+  const animationPicker = (previewAnimations.length > 0 || previewHasRig) && (
     <div className="pointer-events-auto absolute right-2 top-2 z-10 flex items-start gap-2">
       {previewHasRig && (
         <button
           type="button"
-          title={
-            previewSkeletonVisible ? "Hide skeleton" : "Show skeleton"
-          }
+          title={previewSkeletonVisible ? "Hide skeleton" : "Show skeleton"}
           onClick={handleSkeletonToggle}
           className={`flex h-10 w-10 items-center justify-center rounded-[3px] border transition-colors ${
             previewSkeletonVisible
@@ -646,27 +612,22 @@ export const UploadFiles3D = ({
   );
 
   const isMulti = fileEntries.length > 1;
-  const anyFailed = fileEntries.some((e) => e.status === "error");
-  const anyUploading = fileEntries.some((e) => e.status === "uploading");
-  const anyConverting = fileEntries.some((e) => e.status === "converting");
+  const anyFailed = fileEntries.some(e => e.status === "error");
+  const anyUploading = fileEntries.some(e => e.status === "uploading");
+  const anyConverting = fileEntries.some(e => e.status === "converting");
   // "Started" means an actual upload — FBX conversion (and its failures)
   // must not hide the Upload button.
-  const hasUploadStarted = fileEntries.some(
-    (e) => e.status === "uploading" || e.status === "success",
-  );
-  const allDone =
-    fileEntries.length > 0 &&
-    fileEntries.every((e) => e.status === "success" || e.status === "error");
+  const hasUploadStarted = fileEntries.some(e => e.status === "uploading" || e.status === "success");
+  const allDone = fileEntries.length > 0 && fileEntries.every(e => e.status === "success" || e.status === "error");
   const currentFile = fileEntries[previewIndex]?.file;
-  const isConvertingCurrent =
-    fileEntries[previewIndex]?.status === "converting";
+  const isConvertingCurrent = fileEntries[previewIndex]?.status === "converting";
 
   // Overlayed on the preview canvas while the current FBX is normalizing,
   // or when its conversion failed (the sidebar only exists in multi mode).
   const currentEntry = fileEntries[previewIndex];
   const convertingOverlay = isConvertingCurrent ? (
     <h6 className="pointer-events-none absolute left-0 top-1/2 -mt-5 flex w-full items-center justify-center gap-2.5 text-center opacity-60">
-      <LoaderIcon  className="animate-spin" />
+      <LoaderIcon className="animate-spin" />
       Converting FBX to GLB...
     </h6>
   ) : currentEntry?.status === "error" && isFbx(currentEntry.file) ? (
@@ -678,15 +639,12 @@ export const UploadFiles3D = ({
   return (
     <div className="flex flex-col gap-3">
       {fileSubtypes && fileSubtypes.length > 1 && (
-        <ListDropdown
-          list={fileSubtypes}
-          onSelect={(value) => setSubtype(value as MediaFileAnimationType)}
-        />
+        <ListDropdown list={fileSubtypes} onSelect={value => setSubtype(value as MediaFileAnimationType)} />
       )}
 
       <FileUploader
         fileTypes={fileTypes}
-        files={fileEntries.map((e) => e.file)}
+        files={fileEntries.map(e => e.file)}
         handleChange={handleFilesChange}
         multiple={true}
         fileIcon={BoxIcon}
@@ -695,129 +653,110 @@ export const UploadFiles3D = ({
       {selectionError && <h6 className="z-10 text-red">{selectionError}</h6>}
 
       {isMulti ? (
-        <PanelGroup direction="horizontal">
-          <Panel defaultSize={33} minSize={20}>
-          <ul className="flex h-full flex-col gap-1 overflow-y-auto rounded-none border border-white/15 bg-black/30 p-2">
-            {fileEntries.map((entry, i) => (
-              <li
-                key={i}
-                className={`group flex cursor-pointer items-center justify-between gap-1.5 rounded-[3px] px-2 py-1 text-sm transition-colors ${
-                  i === previewIndex ? "bg-white/10" : "hover:bg-white/5"
-                }`}
-                onClick={() => setPreviewIndex(i)}
-              >
-                <span className="flex-1 truncate" title={entry.file.name}>
-                  {entry.file.name.slice(0, entry.file.name.lastIndexOf("."))}
-                </span>
-                <span className="shrink-0">
-                  {entry.status === "idle" && (
-                    <button
-                      className="opacity-40 transition-opacity hover:opacity-100"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removeFile(i);
-                      }}
-                      title="Remove"
-                    >
-                      <XIcon />
-                    </button>
-                  )}
-                  {(entry.status === "uploading" ||
-                    entry.status === "converting") && (
-                    <LoaderIcon
-                      
-                      className="animate-spin opacity-60" />
-                  )}
-                  {entry.status === "success" && (
-                    <CheckIcon
-                      
-                      className="text-green-400" />
-                  )}
-                  {entry.status === "error" && (
-                    <span className="flex items-center gap-1">
-                      <CircleAlertIcon
-                        
-                        className="text-red-400" />
+        <Group orientation="horizontal">
+          <Panel defaultSize="33%" minSize="20%">
+            <ul className="flex h-full flex-col gap-1 overflow-y-auto rounded-none border border-white/15 bg-black/30 p-2">
+              {fileEntries.map((entry, i) => (
+                <li
+                  key={i}
+                  className={`group flex cursor-pointer items-center justify-between gap-1.5 rounded-[3px] px-2 py-1 text-sm transition-colors ${
+                    i === previewIndex ? "bg-white/10" : "hover:bg-white/5"
+                  }`}
+                  onClick={() => setPreviewIndex(i)}
+                >
+                  <span className="flex-1 truncate" title={entry.file.name}>
+                    {entry.file.name.slice(0, entry.file.name.lastIndexOf("."))}
+                  </span>
+                  <span className="shrink-0">
+                    {entry.status === "idle" && (
                       <button
-                        className="hidden items-center text-xs text-white/60 transition-colors hover:text-white group-hover:inline-flex"
-                        onClick={(e) => {
+                        className="opacity-40 transition-opacity hover:opacity-100"
+                        onClick={e => {
                           e.stopPropagation();
-                          retrySingleFile(i);
+                          removeFile(i);
                         }}
-                        title="Retry"
+                        title="Remove"
                       >
-                        <RotateCwIcon />
+                        <XIcon />
                       </button>
-                    </span>
-                  )}
-                </span>
-              </li>
-            ))}
-          </ul>
+                    )}
+                    {(entry.status === "uploading" || entry.status === "converting") && (
+                      <LoaderIcon className="animate-spin opacity-60" />
+                    )}
+                    {entry.status === "success" && <CheckIcon className="text-green-400" />}
+                    {entry.status === "error" && (
+                      <span className="flex items-center gap-1">
+                        <CircleAlertIcon className="text-red-400" />
+                        <button
+                          className="hidden items-center text-xs text-white/60 transition-colors hover:text-white group-hover:inline-flex"
+                          onClick={e => {
+                            e.stopPropagation();
+                            retrySingleFile(i);
+                          }}
+                          title="Retry"
+                        >
+                          <RotateCwIcon />
+                        </button>
+                      </span>
+                    )}
+                  </span>
+                </li>
+              ))}
+            </ul>
           </Panel>
 
-          <PanelResizeHandle className="flex w-4 items-center justify-center">
+          <Separator className="flex w-4 items-center justify-center">
             <div
               className="h-8 w-1 rounded-none bg-white/20 transition-colors hover:bg-white/40"
-              onPointerDown={(e) => e.stopPropagation()}
+              onPointerDown={e => e.stopPropagation()}
             />
-          </PanelResizeHandle>
+          </Separator>
 
-          <Panel defaultSize={67} minSize={25}>
-          <div className="flex h-full flex-col gap-2">
-            <div className="relative w-full min-h-48 overflow-hidden rounded-none border border-white/15 bg-black/30">
-              <canvas
-                className="pointer-events-none h-full min-h-48 !w-full"
-                ref={canvasCallbackRef}
-              />
-              {animationPicker}
-              {convertingOverlay}
-              {!currentFile && (
-                <h6 className="pointer-events-auto absolute left-0 top-1/2 -mt-5 flex w-full items-center justify-center gap-2.5 text-center opacity-50">
-                  <BoxIcon />
-                  Your model preview will appear here
-                </h6>
-              )}
-              {previewStatus.type.includes("Error") && (
-                <h6 className="pointer-events-auto absolute left-0 top-1/2 -mt-5 w-full text-center">
-                  {previewStatus.type}
-                  {previewStatus.message && <br />}
-                  {previewStatus.message}
-                </h6>
-              )}
+          <Panel defaultSize="67%" minSize="25%">
+            <div className="flex h-full flex-col gap-2">
+              <div className="relative w-full min-h-48 overflow-hidden rounded-none border border-white/15 bg-black/30">
+                <canvas className="pointer-events-none h-full min-h-48 !w-full" ref={canvasCallbackRef} />
+                {animationPicker}
+                {convertingOverlay}
+                {!currentFile && (
+                  <h6 className="pointer-events-auto absolute left-0 top-1/2 -mt-5 flex w-full items-center justify-center gap-2.5 text-center opacity-50">
+                    <BoxIcon />
+                    Your model preview will appear here
+                  </h6>
+                )}
+                {previewStatus.type.includes("Error") && (
+                  <h6 className="pointer-events-auto absolute left-0 top-1/2 -mt-5 w-full text-center">
+                    {previewStatus.type}
+                    {previewStatus.message && <br />}
+                    {previewStatus.message}
+                  </h6>
+                )}
+              </div>
+              <div className="flex items-center justify-center gap-3">
+                <Button
+                  variant="secondary"
+                  onClick={() => setPreviewIndex(p => Math.max(0, p - 1))}
+                  disabled={previewIndex === 0}
+                >
+                  <ChevronLeftIcon />
+                </Button>
+                <span className="text-sm opacity-60">
+                  {previewIndex + 1} / {fileEntries.length}
+                </span>
+                <Button
+                  variant="secondary"
+                  onClick={() => setPreviewIndex(p => Math.min(fileEntries.length - 1, p + 1))}
+                  disabled={previewIndex === fileEntries.length - 1}
+                >
+                  <ChevronRightIcon />
+                </Button>
+              </div>
             </div>
-            <div className="flex items-center justify-center gap-3">
-              <Button
-                variant="secondary"
-                onClick={() => setPreviewIndex((p) => Math.max(0, p - 1))}
-                disabled={previewIndex === 0}
-              >
-                <ChevronLeftIcon />
-              </Button>
-              <span className="text-sm opacity-60">
-                {previewIndex + 1} / {fileEntries.length}
-              </span>
-              <Button
-                variant="secondary"
-                onClick={() =>
-                  setPreviewIndex((p) =>
-                    Math.min(fileEntries.length - 1, p + 1),
-                  )
-                }
-                disabled={previewIndex === fileEntries.length - 1}
-              >
-                <ChevronRightIcon />
-              </Button>
-            </div>
-          </div>
           </Panel>
-        </PanelGroup>
+        </Group>
       ) : (
         <div className="relative m-auto w-full min-h-48 overflow-hidden rounded-none border border-white/15 bg-black/30">
-          <canvas
-            className="pointer-events-none h-full min-h-48 !w-full"
-            ref={canvasCallbackRef}
-          />
+          <canvas className="pointer-events-none h-full min-h-48 !w-full" ref={canvasCallbackRef} />
           {animationPicker}
           {convertingOverlay}
           {!currentFile && (
@@ -844,8 +783,7 @@ export const UploadFiles3D = ({
 
       {!isUploading && !anyUploading && allDone && anyFailed && isMulti && (
         <p className="text-center text-sm text-red-400">
-          {fileEntries.filter((e) => e.status === "error").length} file(s)
-          failed to upload.
+          {fileEntries.filter(e => e.status === "error").length} file(s) failed to upload.
         </p>
       )}
 
@@ -864,11 +802,7 @@ export const UploadFiles3D = ({
             onClick={handleSubmit}
             disabled={fileEntries.length === 0 || anyConverting || isSubmitting}
           >
-            {anyConverting
-              ? "Converting..."
-              : isSubmitting
-                ? "Uploading..."
-                : "Upload"}
+            {anyConverting ? "Converting..." : isSubmitting ? "Uploading..." : "Upload"}
           </Button>
         )}
       </div>

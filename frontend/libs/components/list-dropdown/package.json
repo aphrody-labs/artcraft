@@ -1,6 +1,6 @@
 {
   "name": "@storyteller/ui-list-dropdown",
-  "version": "0.0.1",
+  "version": "1.4.4",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -13,5 +13,10 @@
       "import": "./dist/index.js",
       "default": "./dist/index.js"
     }
+  },
+  "scripts": {
+    "typecheck": "bun check -p tsconfig.lib.json --threads=2 --no-pretty",
+    "lint": "bun lint src",
+    "format": "bun fmt --write -c ../../../../../../bun-format.json src"
   }
 }

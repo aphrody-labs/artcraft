@@ -1,6 +1,6 @@
 {
   "name": "@storyteller/ui-help-menu",
-  "version": "0.0.1",
+  "version": "1.4.4",
   "type": "module",
   "main": "./src/index.ts",
   "module": "./src/index.ts",
@@ -13,5 +13,10 @@
       "import": "./src/index.ts",
       "default": "./src/index.ts"
     }
+  },
+  "scripts": {
+    "typecheck": "bun check -p tsconfig.lib.json --threads=2 --no-pretty",
+    "lint": "bun lint src",
+    "format": "bun fmt --write -c ../../../../../../bun-format.json src"
   }
 }

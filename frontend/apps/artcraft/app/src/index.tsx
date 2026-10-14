@@ -37,6 +37,7 @@ const GlobalSettingsManager = ({ env }: { env: Record<string, string> }) => {
   /// Initizations that depends on ENV vars ///
   function PostHogInit() {
     const apiKey = import.meta.env.VITE_POSTHOG_API_KEY;
+    if (!apiKey) return;
     posthog.init(apiKey, {
       api_host: "https://us.i.posthog.com/",
       ui_host: "https://us.i.posthog.com/",
@@ -60,10 +61,10 @@ const GlobalSettingsManager = ({ env }: { env: Record<string, string> }) => {
     const theme = allowed.includes(value) ? (normalized as string) : "gray";
     const root = document.documentElement;
     const toRemove: string[] = [];
-    root.classList.forEach((c) => {
+    root.classList.forEach(c => {
       if (c.startsWith("theme-")) toRemove.push(c);
     });
-    toRemove.forEach((c) => root.classList.remove(c));
+    toRemove.forEach(c => root.classList.remove(c));
     root.classList.add(`theme-${theme}`);
   }, []);
 

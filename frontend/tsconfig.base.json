@@ -23,18 +23,14 @@
       "@storyteller/api": ["./libs/api/src/index.ts"],
       "@storyteller/api-enums": ["./libs/api-enums/src/index.ts"],
       "@storyteller/common": ["./libs/common/src/index.ts"],
-      "@storyteller/ui-action-reminder-modal": [
-        "./libs/components/action-reminder-modal/src/index.ts"
-      ],
+      "@storyteller/ui-action-reminder-modal": ["./libs/components/action-reminder-modal/src/index.ts"],
       "@storyteller/ui-audio-player": ["./libs/components/audio-player/src/index.ts"],
       "@storyteller/ui-badge": ["./libs/components/badge/src/index.ts"],
       "@storyteller/ui-button": ["./libs/components/button/src/index.ts"],
       "@storyteller/ui-button-dropdown": ["./libs/components/button-dropdown/src/index.ts"],
       "@storyteller/ui-button-icon": ["./libs/components/button-icon/src/index.ts"],
       "@storyteller/ui-button-icon-select": ["./libs/components/button-icon-select/src/index.ts"],
-      "@storyteller/ui-camera-settings-modal": [
-        "./libs/components/camera-settings-modal/src/index.ts"
-      ],
+      "@storyteller/ui-camera-settings-modal": ["./libs/components/camera-settings-modal/src/index.ts"],
       "@storyteller/ui-checkbox": ["./libs/components/checkbox/src/index.ts"],
       "@storyteller/ui-close-button": ["./libs/components/close-button/src/index.ts"],
       "@storyteller/ui-file-uploader": ["./libs/components/file-uploader/src/index.ts"],
@@ -60,9 +56,7 @@
       "@storyteller/ui-pricing-modal": ["./libs/components/pricing-modal/src/index.ts"],
       "@storyteller/ui-pricing-table": ["./libs/components/pricing-table/src/index.ts"],
       "@storyteller/ui-promptbox": ["./libs/components/promptbox/src/index.ts"],
-      "@storyteller/provider-billing-modal": [
-        "./libs/components/provider-billing-modal/src/index.ts"
-      ],
+      "@storyteller/provider-billing-modal": ["./libs/components/provider-billing-modal/src/index.ts"],
       "@storyteller/provider-setup-modal": ["./libs/components/provider-setup-modal/src/index.ts"],
       "@storyteller/ui-select": ["./libs/components/select/src/index.ts"],
       "@storyteller/ui-settings-modal": ["./libs/components/settings-modal/src/index.ts"],
@@ -86,6 +80,6 @@
       "@storyteller/tauri-events": ["./libs/tauri-events/src/index.ts"],
       "@storyteller/tauri-utils": ["./libs/tauri-utils/src/index.ts"]
     },
-    "types": ["@aphrody/bun-types", "node", "vite/client"]
+    "types": ["@aphrody/bun-types", "node"]
   }
 }

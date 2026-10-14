@@ -2,11 +2,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { EditorProvider } from "./EditorProvider";
 import type { VideoEditorAdapters } from "./adapters";
 import { initializeGpuRenderer } from "./services/renderer/gpu-renderer";
-import {
-  ResizablePanelGroup,
-  ResizablePanel,
-  ResizableHandle,
-} from "./components/ui/resizable";
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "./components/ui/resizable";
 import { AssetsPanel } from "./panels/assets";
 import { PropertiesPanel } from "./panels/properties";
 import { Timeline } from "./timeline/components";
@@ -24,17 +20,10 @@ import { Button } from "./components/ui/button";
 import { TooltipProvider } from "./components/ui/tooltip";
 import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  createPreviewOverlayControl,
-  isPreviewOverlayVisible,
-  mergePreviewOverlaySources,
-} from "./preview/overlays";
+import { createPreviewOverlayControl, isPreviewOverlayVisible, mergePreviewOverlaySources } from "./preview/overlays";
 import { usePreviewStore } from "./preview/preview-store";
 import { getGuidePreviewOverlaySource } from "./guides";
-import {
-  bookmarkNotesPreviewOverlay,
-  getBookmarkPreviewOverlaySource,
-} from "./timeline/bookmarks";
+import { bookmarkNotesPreviewOverlay, getBookmarkPreviewOverlaySource } from "./timeline/bookmarks";
 
 export interface VideoEditorProps {
   projectId?: string;
@@ -54,12 +43,7 @@ export interface VideoEditorProps {
 // don't have to mount the provider themselves. Hosts that want to share
 // one provider across multiple editor instances can mount EditorProvider
 // + VideoEditorShell separately.
-export function VideoEditor({
-  projectId: _projectId,
-  adapters,
-  headerEndSlot,
-  exitTo,
-}: VideoEditorProps) {
+export function VideoEditor({ projectId: _projectId, adapters, headerEndSlot, exitTo }: VideoEditorProps) {
   return (
     <EditorProvider adapters={adapters}>
       {/* Shell-wide Radix tooltip provider so every descendant tooltip has a
@@ -93,7 +77,7 @@ export function VideoEditor({
 }
 
 function DegradedRendererBanner() {
-  const isDegraded = useEditor((e) => e.renderer.isDegraded);
+  const isDegraded = useEditor(e => e.renderer.isDegraded);
   const [dismissed, setDismissed] = useState(false);
   if (!isDegraded || dismissed) return null;
 
@@ -145,9 +129,7 @@ function EditorLayout() {
   // can bootstrap via setActiveProject at any time — this gate flips
   // as soon as they do. Avoids the historical pattern of hosts having
   // to render <VideoEditor> conditionally on their own ready state.
-  const hasProject = useEditor(
-    (editor) => editor.project.getActive() !== null,
-  );
+  const hasProject = useEditor(editor => editor.project.getActive() !== null);
 
   if (!gpuReady || !hasProject) return null;
   return <ReadyEditorLayout />;
@@ -158,15 +140,11 @@ function ReadyEditorLayout() {
   useKeybindingsListener();
   usePasteMedia();
   const { panels, setPanel } = usePanelStore();
-  const activeScene = useEditor((editor) =>
-    editor.scenes.getActiveSceneOrNull(),
-  );
-  const currentTime = useEditor((editor) => editor.playback.getCurrentTime());
-  const activeGuide = usePreviewStore((state) => state.activeGuide);
-  const overlays = usePreviewStore((state) => state.overlays);
-  const setOverlayVisibility = usePreviewStore(
-    (state) => state.setOverlayVisibility,
-  );
+  const activeScene = useEditor(editor => editor.scenes.getActiveSceneOrNull());
+  const currentTime = useEditor(editor => editor.playback.getCurrentTime());
+  const activeGuide = usePreviewStore(state => state.activeGuide);
+  const overlays = usePreviewStore(state => state.overlays);
+  const setOverlayVisibility = usePreviewStore(state => state.setOverlayVisibility);
   const showBookmarkNotes = isPreviewOverlayVisible({
     overlay: bookmarkNotesPreviewOverlay,
     overlays,
@@ -195,60 +173,58 @@ function ReadyEditorLayout() {
   );
 
   const overlayControls = useMemo(
-    () =>
-      overlaySource.definitions.map((overlay) =>
-        createPreviewOverlayControl({ overlay, overlays }),
-      ),
+    () => overlaySource.definitions.map(overlay => createPreviewOverlayControl({ overlay, overlays })),
     [overlaySource.definitions, overlays],
   );
 
   return (
     <ResizablePanelGroup
-      direction="vertical"
+      orientation="vertical"
       className="size-full gap-[0.18rem]"
-      onLayout={(sizes) => {
+      onLayoutChanged={(layout, { requestedLayout, isUserInteraction }) => {
+        if (!isUserInteraction) return;
+        const sizes = requestedLayout ?? layout;
         setPanel({
           panel: "mainContent",
-          size: sizes[0] ?? panels.mainContent,
+          size: sizes.mainContent ?? panels.mainContent,
         });
         setPanel({
           panel: "timeline",
-          size: sizes[1] ?? panels.timeline,
+          size: sizes.timeline ?? panels.timeline,
         });
       }}
     >
       <ResizablePanel
-        defaultSize={panels.mainContent}
-        minSize={30}
-        maxSize={85}
+        id="mainContent"
+        defaultSize={`${panels.mainContent}%`}
+        minSize="30%"
+        maxSize="85%"
         className="min-h-0"
       >
         <ResizablePanelGroup
-          direction="horizontal"
+          orientation="horizontal"
           className="size-full gap-[0.19rem] px-3"
-          onLayout={(sizes) => {
-            setPanel({ panel: "tools", size: sizes[0] ?? panels.tools });
-            setPanel({ panel: "preview", size: sizes[1] ?? panels.preview });
+          onLayoutChanged={(layout, { requestedLayout, isUserInteraction }) => {
+            if (!isUserInteraction) return;
+            const sizes = requestedLayout ?? layout;
+            setPanel({ panel: "tools", size: sizes.tools ?? panels.tools });
+            setPanel({ panel: "preview", size: sizes.preview ?? panels.preview });
             setPanel({
               panel: "properties",
-              size: sizes[2] ?? panels.properties,
+              size: sizes.properties ?? panels.properties,
             });
           }}
         >
-          <ResizablePanel
-            defaultSize={panels.tools}
-            minSize={15}
-            maxSize={40}
-            className="min-w-0"
-          >
+          <ResizablePanel id="tools" defaultSize={`${panels.tools}%`} minSize="15%" maxSize="40%" className="min-w-0">
             <AssetsPanel />
           </ResizablePanel>
 
           <ResizableHandle withHandle />
 
           <ResizablePanel
-            defaultSize={panels.preview}
-            minSize={30}
+            id="preview"
+            defaultSize={`${panels.preview}%`}
+            minSize="30%"
             className="min-h-0 min-w-0 flex-1"
           >
             <PreviewPanel
@@ -261,9 +237,10 @@ function ReadyEditorLayout() {
           <ResizableHandle withHandle />
 
           <ResizablePanel
-            defaultSize={panels.properties}
-            minSize={15}
-            maxSize={40}
+            id="properties"
+            defaultSize={`${panels.properties}%`}
+            minSize="15%"
+            maxSize="40%"
             className="min-w-0"
           >
             <PropertiesPanel />
@@ -274,9 +251,10 @@ function ReadyEditorLayout() {
       <ResizableHandle withHandle />
 
       <ResizablePanel
-        defaultSize={panels.timeline}
-        minSize={15}
-        maxSize={70}
+        id="timeline"
+        defaultSize={`${panels.timeline}%`}
+        minSize="15%"
+        maxSize="70%"
         className="min-h-0 px-3 pb-3"
       >
         <Timeline />
