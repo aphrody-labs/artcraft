@@ -7,9 +7,7 @@ import { isExternal } from "../shared-vite-config";
 export default defineConfig(() => ({
   root: import.meta.dir,
   cacheDir: "../../node_modules/.vite/libs/api-enums",
-  plugins: [
-    dts({ entryRoot: "src", tsconfigPath: path.join(import.meta.dir, "tsconfig.lib.json") }),
-  ],
+  plugins: [dts({ entryRoot: "src", tsconfigPath: path.join(import.meta.dir, "tsconfig.lib.json") })],
   // Uncomment this if you are using workers.
   // worker: {
   //  plugins: [ nxViteTsPaths() ],
