@@ -3,13 +3,6 @@
   "version": "1.4.4",
   "private": true,
   "license": "MIT OR Apache-2.0",
-  "workspaces": [
-    "apps/artcraft",
-    "libs/*",
-    "libs/analytics/*",
-    "libs/components/*",
-    "libs/state/*"
-  ],
   "scripts": {
     "test:desktop-session": "bun tools/testing/desktop-session.mjs",
     "perf:desktop": "bun tools/performance/run.mjs",
@@ -19,7 +12,7 @@
     "build:staging": "bun scripts/artcraft.ts build",
     "typecheck": "bun check -p apps/artcraft/tsconfig.json --threads=2 --no-pretty",
     "lint": "bun lint apps/artcraft/app/src libs scripts",
-    "format": "bun fmt --write -c ../../../bun-format.json apps/artcraft/app/src libs scripts"
+    "format": "bun fmt apps/artcraft/app/src libs scripts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -75,7 +68,7 @@
     "zustand": "^5.0.5"
   },
   "devDependencies": {
-    "@aphrody/bun-types": "catalog:",
+    "@aphrody/bun-types": "workspace:*",
     "@playwright/test": "1.63.0",
     "@remix-run/node": "catalog:",
     "@tailwindcss/postcss": "catalog:",

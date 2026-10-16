@@ -17,7 +17,7 @@
   "scripts": {
     "typecheck": "bun check -p tsconfig.lib.json --threads=2 --no-pretty",
     "lint": "bun lint src",
-    "format": "bun fmt --write -c ../../../../../bun-format.json src"
+    "format": "bun fmt src"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.11.0",
